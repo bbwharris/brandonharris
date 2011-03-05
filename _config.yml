@@ -1,0 +1,7 @@
+url: brandon-harris.com
+title: Brandon Harris Web Development
+auto: true
+pygments: true
+exclude:
+  - .gitignore
+  - Rakefile

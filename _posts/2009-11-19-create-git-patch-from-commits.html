@@ -1,0 +1,12 @@
+--- 
+  layout: default
+  title: Create Git Patch From Commits
+  categories: [git]
+---
+<p>This is another of those excruciatingly easy tasks that isn&#8217;t well documented.</p>
+
+{% highlight console %}
+git format-patch sha1..sha2
+{% endhighlight %}
+
+<p>Where sha1 is the older commit and sha2 is the newer commit.  This will create patches for each modified file between those commits.</p>

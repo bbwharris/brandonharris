@@ -1,0 +1,147 @@
+body
+  :font-family verdana
+  :font-size 11px
+
+
+div.fieldWithErrors
+  :display inline
+
+
+form fieldset
+  :display inline-block
+
+  &.inputs
+    :background #eee
+
+  &.buttons
+    :background #aaa
+    :padding 10px
+
+  ol li
+    :border-bottom 1px solid #ccc
+    :padding 10px
+
+    &:after
+      :content "."
+      :display block
+      :height 0
+      :clear both
+      :visibility hidden
+
+    &.required, &.optional
+    &.error
+      :background pink
+
+    label
+      :display block
+      :width 150px
+      :float left
+
+    p
+      &.inline-hints
+        :color #666
+        :margin 0.5em 0 0 150px
+
+      &.inline-errors
+        :color red
+        :margin 0.5em 0 0 150px
+
+    &.string input
+      :width 300px
+
+    &.float input
+      :width 300px
+
+    &.integer input
+      :width 300px
+
+    &.decimal input
+      :width 300px
+
+    &.text textarea
+      :width 300px
+
+    &.boolean label
+      :padding-left 150px
+      :width auto
+
+      input
+        :margin-right 0.5em
+
+    &.radio fieldset
+      legend
+        :display block
+        :float left
+        :width 150px
+        :position relative
+
+        span
+      ol
+        :float left
+        :width 300px
+
+        li
+          :padding 0
+          :border 0
+          :margin-bottom .2em
+
+          label
+            :float none
+            :width 100%
+
+            input
+              :margin-right 0.5em
+              :display inline
+              :margin 0
+              :padding 0
+
+    &.date fieldset
+      legend
+        :display block
+        :float left
+        :width 150px
+        :position relative
+
+        span
+      ol
+        :float left
+        :width 300px
+        :margin 0
+        :padding 0
+
+        li
+          :float left
+          :width auto
+          :margin 0
+          :padding 0
+          :border 0
+
+          label
+            :display none
+
+  &:after
+    :content "."
+    :display block
+    :height 0
+    :clear both
+    :visibility hidden
+
+
+html[xmlns] form fieldset
+  :display block
+
+  ol li
+    :display block
+
+
+* html form fieldset
+  :height 1%
+
+  ol li
+    :height 1%
+
+
+*/
+
+/* clearfixing the li's */
+  :display inline-block

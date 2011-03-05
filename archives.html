@@ -1,0 +1,21 @@
+---
+  layout: default
+  title: Archives
+---
+<h2>{{page.title}}</h2>
+{% assign previous_month_year = "" %}
+{% for post in site.posts%}
+  {% capture current_month_year %}{{post.date | date:"%B, %Y"}}{% endcapture %}
+  {% if current_month_year != previous_month_year %}
+    {% assign previous_month_year = current_month_year %}
+    {% if previous_month_year != "" %}
+      </ul>
+    {% endif %}
+    <h3>{{current_month_year}}</h3>
+    <ul>
+      <li><a href='{{post.url}}'>{{post.title}}</a></li>
+  {% else %}
+      <li><a href='{{post.url}}'>{{post.title}}</a></li>
+  {% endif %}
+{% endfor %}
+

@@ -1,0 +1,103 @@
+--- 
+  layout: default
+  title: Oracle, Rails and Ubuntu 10.04
+  categories: [rails, oracle, ubuntu]
+---
+<p>I recently setup an Ubuntu based server that needed ruby to talk to oracle and mysql.  If you are a rails developer, you should be familiar with mysql, but what about Oracle? It isn&#8217;t quite as straightforward as you might assume, but it is within the grasp of mere mortals. Please keep in mind that due to changing version numbers, all version numbers are replaced with *.  It is up to the reader to properly translate the following commands.  Don&#8217;t simply copy and paste.  I am making the assumption that you are installing on Ubuntu 10.04 (Lucid Lynx) and you are using the 64-bit version.</p>
+<p>First Go to:<br />
+<a href="http://www.oracle.com/technology/software/tech/oci/instantclient/htdocs/linuxx86_64.html">http://www.oracle.com/technology/software/tech/oci/instantclient/htdocs/linuxx86_64.html</a></p>
+<p>Select the latest versions of:</p>
+
+{% highlight console %}
+oracle-instantclient*-basiclite-*.rpm
+oracle-instantclient*-sqlplus-*.rpm
+instantclient-sdk-*.zip
+{% endhighlight %}
+
+<p>Replace the * above with the appropriate latest version number.</p>
+<p>Now you will need to install the alien package management tool.  It converts .rpm to .deb and works amazingly well most of the time.</p>
+
+{% highlight console %}
+sudo apt0get install alien
+{% endhighlight %}
+
+<p>Now run the alien command on the rpms you downloaded from oracle:</p>
+
+{% highlight console %}
+sudo alien oracle-instantclient*-basiclite-*.rpm
+sudo alien oracle-instantclient*-sqlplus-*.rpm
+{% endhighlight %}
+
+<p>This will produce .deb files in your current directory. To install the freshly minted pacakges run:</p>
+
+{% highlight console %}
+sudo dpkg -i oracle-instantclient-*.deb
+{% endhighlight %}
+
+<p>Now unzip the sdk contents, you need to extract the header files for everything to work later.</p>
+
+{% highlight console %}
+unzip instantclient-sdk-*
+cd instantclient-sdk-*/include/
+cp *.h /usr/include/oracle/<version>/client64/lib
+{% endhighlight %}
+
+<p>If you are going to be using the tnsnames.ora file to specify your connections, you will need to set the TNS_ADMIN environment variable.  In Debian based distros, you will want to edit /etc/environment.  Editing this file ensures that environment variables are set for all users.</p>
+<p>Add the following environment variables to your /etc/environment file.</p>
+
+{% highlight console %}
+LD_LIBRARY_PATH=/usr/lib/oracle/<version>/client64/lib
+TNS_ADMIN="your path to your tnsnames.ora file"
+{% endhighlight %}
+
+<p>You are all set for interacting with oracle from your Ubuntu server. To test just run:</p>
+
+{% highlight console %}
+sqlplus64
+{% endhighlight %}
+
+<p>If you would like to enable your rails app to use oracle as well you have a few more steps.</p>
+
+{% highlight console %}
+sudo gem install ruby-oci8
+{% endhighlight %}
+
+<p>If that fails, you may need to specify to LD_LIBRARY_PATH:</p>
+
+{% highlight console %}
+sudo gem install LD_LIBRARY_PATH=$LD_LIBRARY_PATH ruby-oci8
+{% endhighlight %}
+
+<p>Pay close attention to errors if you receive them, they are actually very clear and coherent. Pay close attention to your environment variables and the inclusion of the header files.</p>
+<p>If you have reached this point you can test your oci8 connection:</p>
+
+{% highlight irb linenos %}
+irb
+irb(main):001:0>require 'rubygems'
+=> true
+irb(main):002:0>require 'oci8'
+=> true
+irb(main):003:0>oracle_connection = OCI8.new(user,password,schema)
+=> #<OCI8:RTD_ODBC>
+irb(main):004:0> oracle.exec("select 1 from dual")
+=> #<OCI8::Cursor:0x7f9ea9a72430>
+{% endhighlight %}
+
+<p>Now if you are planning on using Ruby on Rails with Oracle, you will need to install the activerecord adapter.  I used the <a href="http://github.com/rsim/oracle-enhanced">enhanced adapter</a>, but the choice is yours.</p>
+
+{% highlight console %}
+sudo gem install activerecord-oracle_enhanced-adapter
+{% endhighlight %}
+
+<p>Now the final part, your database.yml file should look like the following:</p>
+
+{% highlight yaml linenos %}
+production: 
+  adapter: oracle_enhanced 
+  database: <oracle database>
+  username: <oracle username>
+  password: <oracle password>
+{% endhighlight %}
+
+<p>The oracle enhanced adapter has some more config options for your database.yml file, please refer to:<br />
+<a href="http://wiki.github.com/rsim/oracle-enhanced/">http://wiki.github.com/rsim/oracle-enhanced/</a></p>

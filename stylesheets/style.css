@@ -1,0 +1,272 @@
+#wrapper {
+  background: url(/images/light.gif) no-repeat top center;
+  padding: 20px 0; }
+  #wrapper #container {
+    margin: 0 auto;
+    -moz-border-radius-topleft: 15px;
+    -moz-border-radius-topright: 15px;
+    -webkit-border-top-left-radius: 15px;
+    -webkit-border-top-right-radius: 15px;
+    width: 936px;
+    background: white; }
+    #wrapper #container #header {
+      height: 100px;
+      background: #444444;
+      -moz-border-radius-topleft: 15px;
+      -moz-border-radius-topright: 15px;
+      -webkit-border-top-left-radius: 15px;
+      -webkit-border-top-right-radius: 15px;
+      position: relative; }
+      #wrapper #container #header a.rss {
+        position: absolute;
+        bottom: 0;
+        right: 5px; }
+      #wrapper #container #header h1 {
+        position: absolute;
+        bottom: 40px;
+        left: 20px;
+        padding: 0;
+        margin: 0;
+        font-weight: normal; }
+        #wrapper #container #header h1 a {
+          color: white; }
+          #wrapper #container #header h1 a:hover {
+            color: #aaaaaa; }
+      #wrapper #container #header .subtitle {
+        font-size: 1.4em;
+        display: block;
+        float: left;
+        padding: 15px 3px 10px 35px;
+        color: white; }
+    #wrapper #container #content {
+      margin: 0 auto;
+      padding: 0 10px;
+      min-height: 100px;
+      background-color: white; }
+      #wrapper #container #content #main {
+        background-color: white;
+        width: 585px;
+        padding: 0 10px;
+        float: left; }
+        #wrapper #container #content #main .portfolios .portfolio_item {
+          padding-bottom: 40px; }
+          #wrapper #container #content #main .portfolios .portfolio_item p.screenshot {
+            text-align: center; }
+      #wrapper #container #content #sub {
+        padding-left: 15px;
+        background-color: white;
+        width: 296px;
+        float: right; }
+        #wrapper #container #content #sub ul {
+          list-style: none; }
+        #wrapper #container #content #sub #links, #wrapper #container #content #sub #search, #wrapper #container #content #sub #pages, #wrapper #container #content #sub #categories {
+          background: url(/images/sep.png) no-repeat scroll center bottom;
+          padding-bottom: 2em; }
+        #wrapper #container #content #sub #like {
+          background: url(/images/sep.png) no-repeat scroll center bottom;
+          padding: 10px 0; }
+        #wrapper #container #content #sub #twitter_div {
+          background: url(/images/sep.png) no-repeat scroll center bottom;
+          padding-bottom: 2em; }
+          #wrapper #container #content #sub #twitter_div ul#twitter_update_list li {
+            margin: 5px 0; }
+    #wrapper #container #footer {
+      clear: both;
+      margin: 0 auto;
+      background: url(/images/header_footer.jpg) no-repeat scroll 0 -132px;
+      height: 68px;
+      font-size: 8pt;
+      padding: 10px; }
+
+body {
+  font: 80%/1.5 Verdana, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  background: #bec3c6 url(/images/bg.jpg) repeat-x scroll 0 0;
+  padding: 0;
+  margin: 0; }
+
+table {
+  border-spacing: 0; }
+
+h2 {
+  font-family: Georgia, serif;
+  font-size: 1.2em;
+  color: #333333;
+  margin-bottom: 0;
+  border-bottom: 1px solid #cccccc; }
+  h2 a {
+    color: #333333; }
+
+h3, h4, h5 {
+  font-family: Georgia, serif;
+  color: #333333; }
+
+p {
+  padding: 0px;
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+  margin-left: 0px;
+  margin-right: 0px; }
+  p.haha {
+    display: none; }
+
+img {
+  border: 0; }
+
+strong {
+  color: #333333; }
+
+.openid {
+  background-image: url("/images/openid_icon.png");
+  padding-left: 15px;
+  background-repeat: no-repeat;
+  background-position: 0px 2px; }
+
+a {
+  color: #000051;
+  text-decoration: none; }
+  a:hover {
+    color: #00cc99; }
+
+small a {
+  text-decoration: underline; }
+
+label a {
+  text-decoration: underline; }
+
+div.meta {
+  margin-top: 1em;
+  margin-bottom: 1em; }
+div.comments div.body {
+  padding: 5px; }
+div.comments div.meta {
+  min-height: 0px;
+  padding: 0px; }
+div.comments div.separator {
+  height: 10px; }
+div.errors {
+  border: solid 1px red;
+  background-color: #ffcccc;
+  padding: 5px;
+  padding-left: 10px;
+  width: 485px; }
+  div.errors h3 {
+    font-size: 1em; }
+
+.meta ul {
+  list-style: none;
+  margin: 0px;
+  padding-left: 0em;
+  padding-bottom: 0.5em;
+  display: inline;
+  color: #aaaaaa;
+  font-size: 10pt; }
+  .meta ul li {
+    display: inline; }
+    .meta ul li:after {
+      content: " | "; }
+    .meta ul li:last-child:after {
+      content: ""; }
+.meta a {
+  color: #bbbbbb;
+  border-bottom: dotted 1px #bbbbbb; }
+  .meta a:hover {
+    text-decoration: none;
+    color: #00cc99; }
+
+.archive-month .tags {
+  color: #bbbbbb; }
+  .archive-month .tags a {
+    color: #bbbbbb;
+    border-bottom: dotted 1px #bbbbbb; }
+
+.right {
+  float: right; }
+
+.left {
+  float: left; }
+
+.clear_fix {
+  clear: both; }
+
+.right_clear {
+  clear: right; }
+
+.left_clear {
+  clear: left; }
+
+.separator {
+  height: 1px;
+  margin-top: 5px;
+  clear: both; }
+
+.entrybody {
+  margin: 5px 0 10px 15px; }
+  .entrybody p {
+    margin: 10px 10px 10px 70px; }
+  .entrybody table {
+    margin: 10px 10px 10px 70px; }
+
+.date {
+  float: left;
+  font-family: Verdana, Helvetica, Arial, sans-serif;
+  height: 49px;
+  background: url(/images/date.jpg) no-repeat scroll 0 0;
+  text-align: center;
+  width: 51px; }
+  .date p.month {
+    color: white;
+    letter-spacing: 2px;
+    margin: 2px 0 0;
+    padding: 0;
+    text-transform: uppercase; }
+  .date p.day {
+    font-size: 21px;
+    margin: -3px 0 0;
+    text-transform: uppercase;
+    padding: 0; }
+
+textarea {
+  width: 500px;
+  background: white url(/images/textfield.gif) repeat-x scroll center top;
+  border: 1px solid #a6a6a6; }
+
+input {
+  border: 1px solid #a6a6a6;
+  padding: 5px; }
+
+input.textfield {
+  background: white url(/images/textfield.gif) repeat-x scroll center top; }
+
+select {
+  font: normal 12px verdana, arial, helvetica, sans-serif; }
+
+ol.commentlist {
+  list-style: none;
+  padding-left: 15px; }
+  ol.commentlist li {
+    padding: 10px; }
+
+.tag_1 {
+  font-size: 0.6em; }
+
+.tag_2 {
+  font-size: 1em; }
+
+.tag_3 {
+  font-size: 1.4em; }
+
+.tag_4 {
+  font-size: 1.8em; }
+
+#project_summary {
+  height: 150px; }
+
+#new_comment textarea, #edit_comment textarea {
+  height: 150px; }
+
+.alt, .container_alt {
+  border: #dadada 2px dashed; }
+
+.fieldWithErrors {
+  display: inline; }

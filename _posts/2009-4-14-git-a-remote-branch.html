@@ -1,0 +1,46 @@
+--- 
+  layout: default
+  title: Git a remote branch
+  categories: [git]
+---
+<p>Git has it&#8217;s own work flow apart from other change management software.  Branching is particularly easy, but slightly different than what one is used to.  Typically, we create local branches in git to test out new ideas.  Occasionally, these new ideas are good enough to share with other developers and suddenly we want a remote version of that remote branch.</p>
+
+<p>We have already done this:</p>
+
+{% highlight console %}
+git checkout -b my_new_awesome_branch
+{% endhighlight %}
+
+<p>We want to do this:</p>
+
+{% highlight console %}
+git push origin my_new_awesome_branch
+{% endhighlight %}
+
+<p>That works, but then you don&#8217;t properly track the new branch.  To include tracking as well, you would instead do:</p>
+
+{% highlight console %}
+git push origin origin:refs/heads/my_new_awesome_branch
+{% endhighlight %}
+
+<p>That will create the remote branch.  Cool, now lets push our changes to it&#8230;</p>
+
+{% highlight console %}
+git push origin origin/my_new_awesome_branch
+{% endhighlight %}
+
+<p>In getting to this point you might run into snags, make sure you have committed everything and resolved all conflicts.</p>
+
+<p>Now, you want to remove that remote branch?</p>
+
+{% highlight console %}
+git branch -r -d origin/my_new_awesome_branch
+{% endhighlight %}
+
+<p>Done?  Not quite&#8230;</p>
+
+{% highlight console %}
+git push origin my_new_awesome_branch
+{% endhighlight %}
+
+<p>That clears it from the remote.  Git is still pretty cool.</p>

@@ -1,0 +1,49 @@
+--- 
+  layout: default
+  title: Haxe - An Interesting Path To Open Source Flash Programming
+  categories: [haxe, flash]
+---
+<p>I have my reservations about learning flash.  It is proprietary, bloated, and doesn&#8217;t work very well on linux 64bit.  However, there are a lot of rich web applications that need to be flash based. Youtube anyone?  I landed on <a href="http://haxe.org">haxe</a>.</p>
+
+<p>I was slightly turned off by the fact that haxe can compile to javascript, flash, or Neko (which I am not familiar with).  However, what turned my on was that haxe compiled to swf is apparently faster than <span class="caps">AS3</span> compiled swf&#8217;s.  That argument is probably a good topic for another post, I will have to run some benchmarking.</p>
+
+<p>The documentation on <a href="http://haxe.org">haxe.org</a> is pretty good. <a href="http://www.cactusflower.org/learning-flash-with-haxe#library">Here is a good tutorial</a> on getting started with flash and haxe.</p>
+
+<p>Here is an example of drawing two circles in haxe:</p>
+{% highlight hx %}
+class Test {
+  static function main() {
+    var mc:flash.display.MovieClip = flash.Lib.current;
+    //set the fill color
+    mc.graphics.beginFill(0x000000);
+    //draw a circle at x=50, y=50 with a radius of 25
+    mc.graphics.drawCircle(50,50,25);
+    //complete the fill routine
+    mc.graphics.endFill();
+    
+    //set the fill color for the second circle
+    mc.graphics.beginFill(0xefefef);
+    //draw a circle at x=75,y=50 with a radius of 25
+    mc.graphics.drawCircle(75,50,25);
+    //complete the fill
+    mc.graphics.endFill();
+  }
+}
+{% endhighlight %}
+<p>The result is what you see below.</p>
+
+<embed src="/files/test.swf" 
+       bgcolor="#ffffff" 
+       width="400" 
+       height="300" 
+       name="haxe" 
+       quality="high" 
+       align="middle" 
+       allowScriptAccess="always" 
+       type="application/x-shockwave-flash" 
+       pluginspage="http://www.macromedia.com/go/getflashplayer" 
+/>
+
+<p>You can see that it is pretty easy to read and understand.  If you follow the tutorial at <a href="http://www.cactusflower.org/learning-flash-with-haxe#library">cactusflower.org</a> you will create something a little more interactive.</p>
+
+<p>My impression is that if you need to develop a flash app and would like to use Open Source tools, haxe is definitely an option.</p>

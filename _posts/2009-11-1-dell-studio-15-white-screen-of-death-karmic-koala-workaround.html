@@ -1,0 +1,49 @@
+--- 
+  layout: default
+  title: Dell Studio 15 "White Screen of Death" Karmic Koala Workaround
+  categories: [karmic, ubuntu]
+---
+<p>It&#8217;s a horrible feeling to watch your system die after an upgrade.  You may have experienced this problem before.  Fear not, there is a workaround, and you will be back into your computer in no time.  Just follow these directions, they may appear slightly more advanced than what you might be used to, but this can be fixed.</p>
+<p>Add &#8220;nomodeset&#8221; to the boot options in grub. Use vim (or nano, or whatever you like to use) to edit the boot options.  If you are booting from your hard drive on a recent upgrade, you can hit &#8220;Esc&#8221; at the grub boot screen and select the kernel after 2.6.31.</p>
+<p>In my case it was 2.6.28-16.  You will be booting into Karmic with an Intrepid Kernel, don&#8217;t be surprised if some stuff doesn&#8217;t work perfectly, you are just doing this to have a way to edit the grub configuration.</p>
+<p>Once you get into your system, do the following:</p>
+
+{% highlight console %}
+sudo vim /boot/grub/menu.lst
+{% endhighlight %}
+
+<p>Change:</p>
+
+{% highlight console %}
+title           Ubuntu 9.10, kernel 2.6.31-14-generic
+uuid            76c6b53b-0181-4ebe-af5e-2abe3db988d7
+kernel          /boot/vmlinuz-2.6.31-14-generic root=UUID=76c6b53b-0181-4ebe-af5e-2abe3db988d7 ro xforcevesa quiet splash
+initrd          /boot/initrd.img-2.6.31-14-generic
+quiet
+
+title           Ubuntu 9.10, kernel 2.6.31-14-generic (recovery mode)
+uuid            76c6b53b-0181-4ebe-af5e-2abe3db988d7
+kernel          /boot/vmlinuz-2.6.31-14-generic root=UUID=76c6b53b-0181-4ebe-af5e-2abe3db988d7 ro xforcevesa  single
+initrd          /boot/initrd.img-2.6.31-14-generic
+{% endhighlight %}
+
+<p>To read like this:</p>
+
+{% highlight console %}
+title           Ubuntu 9.10, kernel 2.6.31-14-generic
+uuid            76c6b53b-0181-4ebe-af5e-2abe3db988d7
+kernel          /boot/vmlinuz-2.6.31-14-generic root=UUID=76c6b53b-0181-4ebe-af5e-2abe3db988d7 ro xforcevesa quiet splash nomodeset
+initrd          /boot/initrd.img-2.6.31-14-generic
+quiet
+
+title           Ubuntu 9.10, kernel 2.6.31-14-generic (recovery mode)
+uuid            76c6b53b-0181-4ebe-af5e-2abe3db988d7
+kernel          /boot/vmlinuz-2.6.31-14-generic root=UUID=76c6b53b-0181-4ebe-af5e-2abe3db988d7 ro xforcevesa  single nomodeset
+initrd          /boot/initrd.img-2.6.31-14-generic
+{% endhighlight %}
+
+<p>Don&#8217;t just copy-paste from this post, simply add &#8220;nomodeset&#8221; to the end of the line that starts with the word &#8220;kernel&#8221;, and only do this for the 2.6.31-14 kernel.</p>
+<p>Reboot, and watch as you boot into your new Karmic upgrade.</p>
+<p>This bug is being worked on in <a href="https://bugs.launchpad.net/ubuntu/hardy/+source/xserver-xorg-video-intel/+bug/297245">this ticket</a></p>
+<p>Keep in mind that any new kernel updates might need this same workaround if you experience the &#8220;White Screen of Death&#8221;.</p>
+<p>Blame <span class="caps">AUO</span> for jacking up the <span class="caps">EDID</span> for the panel, blame Dell for picking cheap parts, blame yourself for buying cheap hardware, certainly don&#8217;t blame the hardworking developers who provide you a great OS, they are hard at work fixing these issues.</p>

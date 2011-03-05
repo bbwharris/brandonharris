@@ -1,0 +1,55 @@
+contact:
+  first_name: Brandon
+  last_name: Harris
+  address: 1909 Ralph C. Craig Ln.
+  city: Austin
+  state: TX
+  zip: 78748
+  email: brandon@brandon-harris.com
+  phone: 512-940-6991
+  blog: "http://brandon-harris.com"
+
+skills:
+  frameworks: "Ruby on Rails, Sinatra"
+  administration: "Passenger (Apache, Nginx)"
+  databases: "Mysql,Postgres,Oracle,Sqlite"
+  ui: "Jquery,Mootools"
+  
+experience:
+  - company:
+    name: Final Phase Systems
+    title: Semiconductor Manufacturing Consultant
+    type: Contract Engineering
+    description: "Oracle SQL, .NET, C#, Ruby"
+    start: "03/2010"
+    end: "present"
+      
+  - company:
+    name: Brandon Harris Web Development
+    title: Sole Proprietor
+    type: Freelance
+    description: "Ruby on Rails, Wordpress, Email Campaigns, SEO Consulting"
+    start: "01/2010"
+    end: "present"
+
+  - company:
+    name: Upstream Communications
+    title: Web Developer
+    type: Web Media/Consulting
+    description: "Ruby on Rails, JQuery, Mootools, .NET, MySQL, Apache, CSS, Social Networks, Websites, Web Applications, Server Administration"
+    start: "10/2008"
+    end: "03/2010"
+      
+  - company:
+    name: Spansion Inc.
+    title: Process Development Engineer
+    type: Semiconductor Manufacturing
+    description: "TCL (Incr Tcl), PL/SQL, SQL, Oracle, Matlab, Ruby on Rails, C#, ASP.NET, Advanced Process Control (APC), Fault Detection & Classification, Run to Run Control for Fab25,Data analysis, data visualization, linear algebra, statistics, physics"
+    start: "01/2005"
+    end: "10/2008"
+education:
+  place: University of Wisconsin
+  degree: Electrical Engineering
+  specialization: "Microelectronics and Communication"
+  gpa: 3.28
+  date: "12/2004"
