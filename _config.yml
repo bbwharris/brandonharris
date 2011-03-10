@@ -1,6 +1,5 @@
 url: brandon-harris.com
-title: Brandon Harris Web Development
-auto: true
+title: Brandon Harris
 pygments: true
 exclude:
   - .gitignore

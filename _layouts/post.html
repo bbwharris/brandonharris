@@ -10,38 +10,28 @@
 </head> 
 <body> 
   <div id='wrapper'> 
-    <div id='container'> 
-      <div id='header'>
+    <div id='header'>
+      <div class='wrap'>
         {% include header.html %}
-      </div> 
-      <div id='content'>         
+      </div>
+    </div> 
+    <div id='content'>
+      <div class='wrap'>
         <div id='main'>
           <h2>{{page.title}}</h2>
           {{ content }}
           <script src="http://connect.facebook.net/en_US/all.js#appId=131586340196079&amp;xfbml=1"></script><fb:comments href="http://www.brandon-harris.com{{page.url}}" num_posts="10" width="500"></fb:comments>
         </div> 
-        <div id='sub'> 
-          <div id='pages'> 
-            {% include navigation.html %}
-          </div> 
-          <div id='social'>
-            {% include social.html %}
-          </div>
-          <div id='categories'> 
-            {% include categories.html %}
-          </div> 
-          <div id='links'> 
-            {% include shouts.html %}
-          </div> 
-        </div>
-      </div> 
-      <div id='footer'> 
+        {% include sub.html %}
+    </div> 
+    <div id='footer'> 
+      <div class='wrap'>
         &#169;
         Brandon Harris
         powered by
-        <a href='https://github.com/mojombo/jekyll'>Jekyll</a> 
+        <a href='https://github.com/mojombo/jekyll'>Jekyll</a>
       </div>
-    </div> 
+    </div>
   </div>
   {% include google_analytics.html %}
 </body> 

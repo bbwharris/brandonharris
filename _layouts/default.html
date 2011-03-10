@@ -10,36 +10,28 @@
 </head> 
 <body> 
   <div id='wrapper'> 
-    <div id='container'> 
-      <div id='header'>
+    <div id='header'>
+      <div class='wrap'>
         {% include header.html %}
-      </div> 
-      <div id='content'>         
+      </div>
+    </div> 
+    <div id='content'>
+      <div class='wrap'>
         <div id='main'> 
           {{ content }}
         </div> 
-        <div id='sub'> 
-          <div id='pages'> 
-            {% include navigation.html %}
-          </div> 
-          <div id='social'>
-            {% include social.html %}
-          </div>
-          <div id='categories'> 
-            {% include categories.html %}
-          </div> 
-          <div id='links'> 
-            {% include shouts.html %}
-          </div> 
-        </div>
-      </div> 
-      <div id='footer'> 
+        {% include sub.html %}
+        <div class="clearfix"></div>
+      </div>
+    </div> 
+    <div id='footer'> 
+      <div class="wrap">
         &#169;
         Brandon Harris
         powered by
         <a href='https://github.com/mojombo/jekyll'>Jekyll</a> 
       </div>
-    </div> 
+    </div>
   </div>
   {% include google_analytics.html %}
 </body> 
