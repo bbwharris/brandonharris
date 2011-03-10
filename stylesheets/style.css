@@ -2,7 +2,7 @@
   height: 70px;
   position: relative;
   background: #333855;
-  border-bottom: 5px solid green;
+  border-bottom: 5px solid #aad;
 }
 #wrapper #header h1 {
   margin: 0;
@@ -104,7 +104,7 @@
   margin: 0 auto;
   height: 68px;
   padding: 10px;
-  border-top: 5px solid green;
+  border-top: 5px solid #aad;
   background: #333855;
   color: #eee;
   font-family: monospace;  
