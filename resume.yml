@@ -13,16 +13,32 @@ skills:
   frameworks: "Ruby on Rails, Sinatra"
   administration: "Passenger (Apache, Nginx)"
   databases: "Mysql,Postgres,Oracle,Sqlite"
-  ui: "Jquery,Mootools"
+  ui: "Jquery, Javascript"
   
 experience:
+  - company:
+    name: Upstream Communications
+    title: Lead Developer
+    type: Web Media/Consulting, Web Applciations
+    description: "Ruby on Rails, JQuery, .NET, MySQL, Apache, CSS, Social Networks, Websites, Web Applications, Server Administration"
+    start: "11/2010"
+    end: "present"
+
+  - company:
+    name: Involver
+    title: Software Engineer
+    type: Web Applications
+    description: "Ruby on Rails, Facebook Applications"
+    start: "08/2010"
+    end: "11/2010"
+    
   - company:
     name: Final Phase Systems
     title: Semiconductor Manufacturing Consultant
     type: Contract Engineering
     description: "Oracle SQL, .NET, C#, Ruby"
     start: "03/2010"
-    end: "present"
+    end: "08/2010"
       
   - company:
     name: Brandon Harris Web Development
@@ -36,7 +52,7 @@ experience:
     name: Upstream Communications
     title: Web Developer
     type: Web Media/Consulting
-    description: "Ruby on Rails, JQuery, Mootools, .NET, MySQL, Apache, CSS, Social Networks, Websites, Web Applications, Server Administration"
+    description: "Ruby on Rails, JQuery, .NET, MySQL, Apache, CSS, Social Networks, Websites, Web Applications, Server Administration"
     start: "10/2008"
     end: "03/2010"
       
