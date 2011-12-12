@@ -7,6 +7,7 @@
   <link href="/stylesheets/syntax.css" media="screen" rel="stylesheet" type="text/css" /> 
   <script src="/javascripts/jquery.js" type="text/javascript"></script> 
   <link href="/atom.xml" rel="alternate" title="ATOM" type="application/atom+xml" /> 
+  {% include typkit %}
 </head> 
 <body> 
   <div id='wrapper'> 
@@ -18,7 +19,7 @@
     <div id='content'>
       <div class='wrap'>
         <div id='main'>
-          <h2>{{page.title}}</h2>
+          <h2 class='tk-mplus-1m'>{{page.title}}</h2>
           {{ content }}
           <script src="http://connect.facebook.net/en_US/all.js#appId=131586340196079&amp;xfbml=1"></script><fb:comments href="http://www.brandon-harris.com{{page.url}}" num_posts="10" width="500"></fb:comments>
         </div> 
