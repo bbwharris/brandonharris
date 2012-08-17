@@ -8,19 +8,29 @@ contact:
   email: brandon@brandon-harris.com
   phone: 512-940-6991
   blog: "http://brandon-harris.com"
+  
 
 skills:
   frameworks: "Ruby on Rails, Sinatra"
   administration: "Passenger (Apache, Nginx)"
   databases: "Mysql,Postgres,Oracle,Sqlite"
-  ui: "Jquery, Javascript"
+  ui: "Jquery, Javascript, SASS, CSS"
   
 experience:
   - company:
+    name: Betta Development
+    title: Owner/Consultant
+    type: Web Startup Consulting
+    description: "Ruby on Rails, jQuery, Server Administration, Business Development"
+    start: "1/2010"
+    end: <%= Time.now %>
+    website: "http://bettadevelopment.com"
+
+  - company:
     name: Upstream Communications
-    title: Lead Developer
+    title: Technical Director
     type: Web Media/Consulting, Web Applciations
-    description: "Ruby on Rails, JQuery, .NET, MySQL, Apache, CSS, Social Networks, Websites, Web Applications, Server Administration"
+    description: "Ruby on Rails, jQuery, .NET, MySQL, Apache, CSS, Social Networks, Websites, Web Applications, Server Administration"
     start: "11/2010"
     end: "present"
 
@@ -52,7 +62,7 @@ experience:
     name: Upstream Communications
     title: Web Developer
     type: Web Media/Consulting
-    description: "Ruby on Rails, JQuery, .NET, MySQL, Apache, CSS, Social Networks, Websites, Web Applications, Server Administration"
+    description: "Ruby on Rails, jQuery, .NET, MySQL, Apache, CSS, Social Networks, Websites, Web Applications, Server Administration"
     start: "10/2008"
     end: "03/2010"
       
