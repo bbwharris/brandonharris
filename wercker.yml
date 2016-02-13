@@ -20,7 +20,13 @@ build:
     # Read more about steps on our dev center:
     # http://devcenter.wercker.com/docs/steps/index.html
   steps:
-    - script:
-        name: echo
-        code: |
-          echo "hello world!"
+    - arjen/hugo-build@1.8.1:
+        version: "0.15"
+        disable_pygments: true
+deploy:
+  steps:
+    - wercker/s3sync@2.0.3:
+        source_dir: public/
+        bucket-url: brandon-harris.com
+        key-id: $AWS_ACCESS_KEY_ID
+        key-secret: $AWS_SECRET_ACCESS_KEY
