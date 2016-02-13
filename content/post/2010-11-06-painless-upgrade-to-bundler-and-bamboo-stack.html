@@ -1,0 +1,27 @@
+---
+categories:
+- heroku
+- rails
+date: 2010-11-06T00:00:00Z
+title: Painless Upgrade to Bundler and Bamboo Stack
+url: /2010/11/06/painless-upgrade-to-bundler-and-bamboo-stack/
+---
+
+<p>I just upgraded this site to use bundler and the heroku Bamboo stack.</p>
+<p>The steps were:</p>
+<p>1. Remove the .gems file, and create a Gemfile.<br />
+2. <a href="http://gembundler.com/rails23.html">Patch the Rails 2.3 installation for bundler</a><br />
+3. Run heroku command:</p>
+
+<pre><code class="language-bash">
+heroku stack:migrate bamboo-ree-1.8.7
+</code></pre>
+
+<p>4.Run command:</p>
+
+<pre><code class="language-bash">
+bundle install
+</code></pre>
+
+<p>5. Commit all changes to git, and push to heroku.</p>
+<p>I am really impressed with the ease at which this was done.  Heroku continues to impress, and Bundler is the best thing to happen to Ruby since Rails.</p>

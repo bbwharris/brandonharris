@@ -1,0 +1,70 @@
+---
+categories:
+- rails
+date: 2009-10-18T00:00:00Z
+title: Nested Model Forms and attachment_fu
+url: /2009/10/18/nested-model-forms-and-attachment-fu/
+---
+
+<p>I think that a lot of Rails developers have moved on to <a href="http://www.thoughtbot.com/projects/paperclip/">Paperclip</a> . Most of us started with <a href="http://github.com/technoweenie/attachment_fu">attachment_fu</a> , and I am willing to wager that we still have projects floating around using attachment_fu.</p>
+<p>I updated one of these older projects to 2.3.4, and created a new form utilizing the built in nested form handling as of 2.3.</p>
+<p>My models look like this:</p>
+<pre><code class="language-ruby">
+class Article < ActiveRecord::Base
+  has_one :report
+  accepts_nested_attributes_for :report
+end
+
+class Report < ActiveRecord::Base
+  belongs_to :article
+  has_attachment(
+    :storage => :file_system,
+    :file_system_path => 'public/reports',
+    :max_size => 2.megabytes,
+    :content_type => 'application/pdf'
+  )
+  validates_as_attachment
+end
+</code></pre>
+
+<p>The idea is that an article can have a pdf attachment.  The view code for the nested form should look like this:</p>
+
+<pre><code class="language-erb">
+ <%form_for :article, :url => admin_articles_url, :html => {:multipart => true} do |f| %>
+    <%=f.label :title%>
+    <%=f.text_field :title%>
+    ...
+    <%f.fields_for :report do |e|%>
+      <%=e.label :report %>
+      <%=e.file_field :uploaded_data%>
+    <%=f.submit 'Create'%>
+  <%end%>
+</code></pre>
+
+<p>Then in your parameters, you should see&nbsp;params[:article][:report_attributes], and by having accepts_nested_attributes in the Article model, Rails takes care of the rest.</p>
+<p>However, I received this error:</p>
+
+
+<pre><code class="language-ruby">
+Report(#70166977052900) expected, got HashWithIndifferentAccess(#70167015178720)
+</code></pre>
+
+<p>I google around, and found this <a href="http://www.ruby-forum.com/topic/179926">thread</a> which doesn&#8217;t provide a solution, in fact no where could I find the solution.  So I did some of my own digging, and I noticed that my parameters looked like this:</p>
+<p>params[:article] and params[:report]</p>
+<p>I wasn&#8217;t seeing the expected:</p>
+<p>params[:article][:report_attributes]</p>
+<p>So given this information, I tried this:</p>
+
+<pre><code class="language-erb">
+  <%form_for :article, :url => admin_articles_url, :html => {:multipart => true} do |f| %>
+    <%=f.label :title%>
+    <%=f.text_field :title%>
+    ...
+    <%f.fields_for :report_attributes do |e|%>
+      <%=e.label :report %>
+      <%=e.file_field :uploaded_data%>
+    <%=f.submit 'Create'%>
+  <%end%>
+</code></pre>
+
+<p>Voila! Problem solved.  I haven&#8217;t dug into the code for Rails and Attachment_Fu to see why this needs to be done, but if you are having this problem and need it fixed, just append &#8220;_attributes&#8221; to your nested child model name in the view.</p>

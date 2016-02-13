@@ -1,0 +1,114 @@
+---
+categories:
+- sinatra
+date: 2010-03-28T00:00:00Z
+title: Simple Sinatra ActiveRecord App with Migrations
+url: /2010/03/28/simple-sinatra-activerecord-app-with-migrations/
+---
+
+<p>I make a lot of stuff using Ruby on Rails, so why bother with Sinatra?  Well, its fast, has a very small footprint, and it&#8217;s fun.</p>
+<p>I decided to build a simple posting app as a test for Sinatra. My example doesn&#8217;t do much, but it was fun to learn about all the little parts of Rails that I take for granted everyday. <br />
+The first thing I did was start with the hello world example.</p>
+
+<pre><code class="language-ruby">
+require 'rubygems'
+require 'sinatra'
+get '/' do
+"This is my first Sinatra test."
+end
+</code></pre>
+
+<p>I fired up the server</p>
+
+<pre><code class="language-bash">
+ruby test.rb
+</code></pre>
+
+<p>Cool.</p>
+<p>I really like Haml, so I created a file test/views/index.haml</p>
+
+{{< highlight haml >}}
+%h1 This is my first Sinatra test.
+</code></pre>
+
+<p>and edited my hello world code:</p>
+
+<pre><code class="language-ruby">
+require 'rubygems'
+require 'sinatra'
+require 'haml'
+get '/' do
+  haml :index
+end
+</code></pre>
+
+<p>Fired up the server and once again was justified in my simple attempts. Cool, what about databases?  We all know and love ActiveRecord, so lets start there.</p>
+
+<pre><code class="language-ruby">
+require 'rubygems'
+require 'sinatra'
+require 'haml'
+require 'active_record'
+
+ActiveRecord::Base.establish_connection(
+  :adapter => 'sqlite3',
+  :dbfile =>  'db/test.sqlite3.db'
+)
+
+#Models
+class Post < ActiveRecord::Base
+end
+
+get '/' do
+ @posts = Post.all
+ haml :index
+end
+
+#Posts
+get '/posts' do
+  @posts = Post.all
+  haml :'posts/index'
+end
+
+get '/posts/new' do
+  @post = Post.new
+  haml :'posts/new'
+end
+
+post '/posts' do
+  @post = Post.new(params[:post])
+  if @post.save
+    redirect "/posts/#{@post.id}"
+  else
+    "There was a problem saving that..."
+  end
+end
+
+get '/posts/:id' do
+  @post = Post.find(params[:id])
+  haml :'posts/show'
+end
+</code></pre>
+
+<p>This will work, if you manually create your own database in sqlite. But I really like migrations. So I created a Rakefile.</p>
+
+<pre><code class="language-ruby">
+namespace :db do
+  task :environment do
+    require 'active_record'
+    ActiveRecord::Base.establish_connection :adapter => 'sqlite3', :dbfile =>  'db/test.sqlite3.db'
+  end
+
+  desc "Migrate the database"
+  task(:migrate => :environment) do
+    ActiveRecord::Base.logger = Logger.new(STDOUT)
+    ActiveRecord::Migration.verbose = true
+    ActiveRecord::Migrator.migrate("db/migrate")
+  end
+end
+</code></pre>
+
+<p>You have to manually create your migration file in db/migrations, and when you run rake db:migrate this rakefile will work for you.  Of course, you will have to edit this particular one to use a different database other than sqlite.  Perhaps you could create a configuration file using <span class="caps">YAML</span>?</p>
+<p>You can see where this is going.  Sinatra is very lightweight, yet it gives you the elements that you are used to in Rails. If you wanted to use something other than ActiveRecord, you can go ahead and do that easily.  Don&#8217;t like Migrations? Don&#8217;t use them.</p>
+<p>I&#8217;ll be using it, and keeping it in my toolbelt.  Try it out, it&#8217;s refreshingly simple if you spend your days toiling around in Rails.</p>
+<p>I did some minor cleanup on the above code and threw it on my <a href="http://github.com/bbwharris/examples/tree/master/sinatra/test/">github which you can get here</a>.</p>

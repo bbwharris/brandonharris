@@ -1,6 +1,0 @@
-<h3>Tags</h3>
-{% for category in site.categories %}
-<ul>
-  <li><a href="/tags/{{category | first}}.html">{{category | first}}</a>&nbsp;<em>({{category | last | size}})</em></li>
-</ul>
-{% endfor %}

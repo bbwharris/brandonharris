@@ -1,0 +1,79 @@
+---
+categories:
+- rails
+date: 2011-04-12T00:00:00Z
+title: Rails Simple Page Caching
+url: /2011/04/12/rails-simple-page-caching/
+---
+
+<p>Memcache is great, and Redis is even better. But you are still bound to a database, and running services. We are so caught up in making everything dynamic, that I think we don't often realize that we are still serving up mostly static html. The good news is that Rails has static html caching built in, and I rarely notice anyone talking about it.</p>
+<p><strong>The scenario:</strong> You want to input your page content via an administrative interface, but this data rarely changes. Another way to look at it, the content only changes if you or someone who administers the site has a need to change it. Rails page caching is your friend.</p>
+
+<p>Let's say you have this code:</p>
+
+<pre><code class="language-ruby">
+# application.rb
+config.action_controller.page_cache_directory = "#{::Rails.root}/public/cache"
+
+# routes.rb
+match '/:url' => 'pages#show'
+
+# Simple page class page.rb
+class Page < ActiveRecord::Base
+end
+
+#simple pages controller pages_controller.rb
+class PagesController < ApplicationController
+  caches_page :show, :cache_path => lambda {|controller| controller.params}
+
+  def show
+    @page = Page.where(:url => params[:url]).first
+    render :file => File.join(::Rails.root,"public","404.html") if @page.nil?
+  end
+
+end
+
+</code></pre>
+
+<p>Now, let's skip ahead real quick and write up a quick show template for this dynamic page.</p>
+
+<pre><code class="language-haml">
+  -# show.html.haml
+  %h2= @page.title
+  = @page.body.html_safe
+</code></pre>
+
+<p>The good stuff occurs in the pages_controller.rb file.  Line #13 states: "Cache pages for the show action, use the params for the file name". This is a little lazy on my part, since the params should only contain the :url, this will work. If there are more complex params, you will need to modify that singleton. Since we set the page_cache_directory to a cache folder in public, we can expect to see our generated files appearing in there.</p>
+<p>The best part about this setup is that it works, and no plugins are needed. You will need to modify your webserver to look in the cache directory first, then proceed to the rails application.</p>
+
+<p>What if you make changes? Wont you see the generated version instead of the updated version? In this case, yes. You will need to write a cache sweeper, a very trivial task. Here's a version of one that I found, but it may not be what you want. I am not making use of ActionController::Caching::Sweeping, because I have more global cache sweeping needs</p>
+
+<pre><code class="language-ruby">
+
+# config/application.rb
+config.active_record.observers = :cache_sweeper
+
+# app/models/cache_sweeper.rb
+class CacheSweeper < ActiveRecord::Observer
+  # Add any other models that Page may depend on here
+  observe Page
+
+  def self.sweep_cache!
+    Dir.glob("#{ActionController::Base.page_cache_directory}/**/*.html") do |f|
+      File.delete(f)
+    end
+  end
+
+  def after_save(*_)
+    self.class.sweep_cache!
+  end
+
+  def after_destroy(*_)
+    self.class.sweep_cache!
+  end
+
+end
+</code></pre>
+
+<p>This good because it errors in favor of regenerating files when any change is made. This is bad if you are extremely worried about performance and don't like it when any of your users touches your database to regenerate a "dynamic" page.</p>
+<p>If you are really concerned about page performance on mostly static sites, check out jekyll, this blog runs on it. Generate your pages once and never worry again. However, if you have requirements where people need to edit a page from your web app, rails caching is your free friend.</p>

@@ -1,0 +1,112 @@
+---
+categories:
+- rails
+- active scaffold
+date: 2009-12-28T00:00:00Z
+title: Active Scaffold with Paperclip
+url: /2009/12/28/active-scaffold-with-paperclip/
+---
+
+<p>I always recommend <a href="http://activescaffold.com/">Active Scaffold</a> to fellow Rails developers.  There is a learning curve, but it can cut a lot of development time out of your clients custom <span class="caps">CMS</span>.</p>
+<p><a href="http://github.com/thoughtbot/paperclip">Paperclip</a> has pretty much dominated the Rails attachment market for the past year.  My company has migrated to it, and there are countless tutorials and testimonials regarding it&#8217;s ease of use.</p>
+<p>I am assuming that you are using the latest version of Rails (2.3.5 as of this writing), Active Scaffold, and Paperclip.  First we will install all the necessary components, then we will configure the rails app.</p>
+<p>Install Active Scaffold:</p>
+
+<pre><code class="language-bash">
+script/plugin install git://github.com/activescaffold/active_scaffold.git
+</code></pre>
+
+<p>Active Scaffold is big so this takes a while.</p>
+<p>Install Paperclip:</p>
+
+<pre><code class="language-bash">
+script/plugin install git://github.com/thoughtbot/paperclip.git
+</code></pre>
+
+<p><em>As of 6/14/2010 this is no longer needed, the bridge has been moved to the core</em><br />
+<del>Install the Active Scaffold Paperclip Bridge:</del></p>
+<p>Lets create a basic person model:</p>
+
+<pre><code class="language-bash">
+script/generate model Person
+</code></pre>
+
+<p>To create controllers in the admin namespace, I don&#8217;t use the rails controller generator. I don&#8217;t like cluttering up my projects with files I will never use, since I employ Active Scaffold for 99% of my admin interfaces.  This is my personal preference, you may do this anyway that you wish.</p>
+
+<pre><code class="language-bash">
+mkdir app/controllers/admin && touch app/controllers/admin/people_controller.rb
+</code></pre>
+
+<p>Lets configure the &#8220;Person&#8221; migration for paperclip.</p>
+
+<pre><code class="language-ruby">
+class CreatePeople < ActiveRecord::Migration
+  def self.up
+    create_table :people do |t|
+      t.string :name, :avatar_file_name, :avatar_content_type
+      t.integer :avatar_file_size
+      t.datetime :avatar_updated_at
+      t.timestamps
+    end
+  end
+
+  def self.down
+    drop_table :people
+  end
+end
+</code></pre>
+
+<p>Configure the Person model to accept the paperclip attachment.</p>
+
+<pre><code class="language-ruby">
+class Person < ActiveRecord::Base
+  has_attached_file :avatar, :styles => {:thumbnail => "75x75#"}
+end
+</code></pre>
+
+<p>Setup your routing for the admin namespaced &#8220;People&#8221; controller.</p>
+
+<pre><code class="language-ruby">
+ActionController::Routing::Routes.draw do |map|
+  map.namespace :admin do |admin|
+    admin.resources :people, :active_scaffold => true
+  end
+  map.connect ':controller/:action/:id'
+  map.connect ':controller/:action/:id.:format'
+end
+</code></pre>
+
+<p>Create a layout file for admin, I use Haml, and I recommend that you do too.</p>
+
+<pre><code class="language-haml">
+!!!STRICT
+%html{'xmlns' => "http://www.w3.org/1999/xhtml", :lang => "en"}
+  %head
+    = javascript_include_tag :defaults
+    = active_scaffold_includes
+  %body
+    #content
+      = yield
+</code></pre>
+
+<p>Finally, configure your active scaffolded controller.  The key here is to include the attachment model name, in this case &#8220;avatar&#8221;.</p>
+
+<pre><code class="language-ruby">
+class Admin::PeopleController < ApplicationController
+  layout 'admin'
+  active_scaffold :person do |config|
+    #restrict all columns to these three
+    config.columns = [:name, :avatar]
+
+    #include multipart for create and update forms
+    config.create.multipart = true
+    config.update.multipart = true
+  end
+end
+</code></pre>
+
+<p>When you are done you can go to &#8220;/admin/people&#8221; and you will be greeted with the familiar active scaffold interface.  Create a new Person and upload the avatar to be used for that Person.  Your result should be similar to this image:<br />
+
+<img src="/images/as_paperclip_done.png" alt="as_paperclip_done.png" width="500px"/></p>
+
+<p>You should download the source for this from my git repo <a href="http://github.com/bbwharris/examples/tree/master/as_paperclip/">here.</a></p>

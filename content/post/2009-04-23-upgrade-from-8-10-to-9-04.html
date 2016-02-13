@@ -1,0 +1,31 @@
+---
+categories:
+- linux
+- ubuntu
+date: 2009-04-23T00:00:00Z
+title: Upgrade from 8.10 to 9.04
+url: /2009/04/23/upgrade-from-8-10-to-9-04/
+---
+
+<p>
+  My upgrade from Intrepid to Jaunty went smoothly.  I run off of a <a href="http://www.dell.com/content/products/productdetails.aspx/laptop-studio-15?c=us&#38;cs=04&#38;l=en&#38;ref=lthp&#38;s=bsd">Dell Studio 15</a> with an external monitor at work.  Unfortunately, this creates a virtual screen size <a href="http://webui.sourcelabs.com/ubuntu/issues/146859">greater than 2048&#215;2048</a> which is an  issue with the intel graphics driver, not compiz, so I unfortunately cannot enjoy the bling.  However, when I am remote, compiz works great.  Metacity is great, but after being spoiled by the eye candy it is hard to go back.  This is coming from a guy whose favorite window manager was <a href="http://www.enlightenment.org/">Enlightenment</a>
+</p>
+<p>The popups on Jaunty have received a major facelift and are more pleasant.  The login screen has changed, as well as the bootup splash screen.  In my normal use, I have not stumbled upon any issues.  If you have a similar setup, feel free to take the automatic upgrade path.</p>
+<p><span class="caps">EDIT</span>:
+  Two things that have annoyed me, that might annoy you:
+</p>
+<p>
+  I prefer to restart the X server through keystroke:
+  <a href="http://albertomilone.com/wordpress/?p=335">Re-Enable Ctrl + Alt + Backspace</a>
+</p>
+<pre><code class="language-bash">
+  sudo apt-get install dontzap
+  sudo dontzap --enable
+</code></pre>
+
+<p>Enable blacklisted <span class="caps">X3100</span> (GMA965) graphics for compiz:</p>
+<pre><code class="language-bash">
+  echo &quot;SKIP_CHECKS=yes&quot; &gt;&gt; ~/.config/compiz/compiz-manager
+</code></pre>
+
+<p>There is a <a href="https://bugs.launchpad.net/ubuntu/+bug/363410">bug in the intel driver</a> that has caused it to become blacklisted.  Enable at your own risk, but since we have been running this driver for a while, it is probably safe.</p>

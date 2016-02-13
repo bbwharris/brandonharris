@@ -1,6 +1,0 @@
-url: brandon-harris.com
-title: Brandon Harris
-pygments: true
-exclude:
-  - .gitignore
-  - Rakefile

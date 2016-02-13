@@ -1,0 +1,40 @@
+---
+categories:
+- flickr
+- rails
+date: 2009-10-20T00:00:00Z
+title: Flickr Down, flickraw killed my app!
+url: /2009/10/20/flickr-down-flickraw-killed-my-app/
+---
+
+<p>10/29/2009 <strong>Update</strong></p>
+<p>Per Mael&#8217;s (Flickraw author) response, I was able to provide a better fix.</p>
+
+<pre><code class="language-ruby">
+FlickrawOptions = { :lazyload => true, :timeout => 2 }
+require 'flickraw'
+</code></pre>
+
+<p>You can see more options in the <a href="http://hanklords.github.com/flickraw/">documentation</a>.</p>
+<p>10/21/2009 <strong>Original Post</strong><br />
+As of the writing of this, Flickr has been down off and on for almost 2 hours.</p>
+<p>I noticed that a handful of our websites weren&#8217;t working.  I traced the problem back to flickraw, there was one line in the ApplicationController:</p>
+
+<pre><code class="language-ruby">
+require 'flickraw'
+</code></pre>
+
+<p>Not the best coding practice, but aside, it still needs to work without stalling on this line.  In another project we had it enclosed in a begin end statement, but that didn&#8217;t do any good since no exceptions were being raised.</p>
+
+<p>I temporarily patched it with the following code (don&#8217;t judge me).</p>
+
+<pre><code class="language-ruby">
+begin
+  $STATUS = Timeout::timeout(2) {
+    require 'flickraw'
+  }
+rescue
+end
+</code></pre>
+
+<p>Then in the application controller where I make a call to the api, I use the $<span class="caps">STATUS</span> global. Gasp! A global variable in Ruby!  Yes, get over it.  It fixes an issue, and your clients will be happy to know that you no longer rely on Flickr for their site to work.</p>
