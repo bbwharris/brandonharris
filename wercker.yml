@@ -20,13 +20,9 @@ build:
     # Read more about steps on our dev center:
     # http://devcenter.wercker.com/docs/steps/index.html
   steps:
-    - script:
-        name: initialize git submodules (themes)
-        code: |
-          git submodule update --init --recursive
     - arjen/hugo-build@1.8.1:
         theme: slender
-        config: "config.toml"
+        config: "build-config.toml"
         version: "0.15"
         force_install: true
         disable_pygments: true
