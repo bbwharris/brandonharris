@@ -26,7 +26,7 @@ build:
 deploy:
   steps:
     - wercker/s3sync@2.0.3:
-        source-dir: public
-        bucket-url: brandon-harris.com
+        source-dir: "public"
+        bucket-url: s3://brandon-harris.com
         key-id: $AWS_ACCESS_KEY_ID
         key-secret: $AWS_SECRET_ACCESS_KEY
