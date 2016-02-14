@@ -22,7 +22,9 @@ build:
   steps:
     - arjen/hugo-build@1.8.1:
         theme: "slender"
+        config: "config.toml"
         version: "0.15"
+        force_install: true
         disable_pygments: true
 deploy:
   steps:
