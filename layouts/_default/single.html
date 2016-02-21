@@ -1,5 +1,6 @@
 {{ partial "header.html" . }}
 <article class="article-content">
-    {{ .Content }}
+  {{ .Content }}
+  {{ partial "facebook-comments.html" . }}
 </article>
 {{ partial "footer.html" . }}

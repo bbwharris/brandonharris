@@ -1,0 +1,136 @@
+---
+date: 2016-02-21T00:00:00Z
+title: Automating Hugo Builds to an S3 Hosted Bucket
+description: "My experience migrating from Jekyll to Hugo and automating deployment of my blog on S3 through Wercker"
+url: /2016/02/21/automating-hugo-builds-to-an-s3-hosted-bucket
+---
+
+<p>I recently migrated this site to use <a href="https://gohugo.io">Hugo</a> instead of <a href="">Jekyll</a>. I was considering <a href="">Middleman</a> or simply updating the base version of Jekyll. However, there are a few reasons why I chose Hugo:</p>
+
+<ol>
+  <li>I wanted to evaluate Hugo</li>
+  <li>I want more exposure the Go language</li>
+  <li>This is where I can experiment</li>
+  <li>It's crazy fast</li>
+</ol>
+
+<p>
+  I have previously built dozens of tiny sites using Middleman, so it was the first thing I reached for in my toolbox. However, I wanted something new. I took a quick look at the Hugo. It is very promising and is just as functional as Middleman. My biggest worry was the time involvement in migrating from Jekyll to Hugo. While perusing the documentation I found this command:
+</p>
+<p>
+  <pre>
+    <code class="language-bash">
+      hugo import jekyll old_site new_site_in_hugo
+    </code>
+  </pre>
+</p>
+
+<p>
+  I was highly skeptical that it could be this simple. I took a closer look at my shabby blog, and decided that I didn't have enough content to really put strain on this function. So I gave it a whirl.
+</p>
+
+<p>
+  It was remarkably that simple to migrate over to Hugo. The biggest challenge that I had afterwards was to replace all the Pygments based code markup with <a href="https://highlightjs.org/">Highlight.js</a>.
+</p>
+
+<p>
+  I accomplished this through a few calls to sed:
+  <pre>
+    <code class="language-bash">
+      sed -i '' -e 's/{{&lt; highlight ruby &gt;}}/&lt;pre&gt;&lt;code class="language-ruby"&gt;/g' content/post/*.html
+      sed -i '' -e 's/{{&lt; highlight console &gt;}}/&lt;pre&gt;&lt;code class="language-bash"&gt;/g' content/post/*.html
+    </code>
+  </pre>
+</p>
+
+
+<p>
+  To cover the closing tags:
+  <pre>
+    <code class="language-bash">
+      sed -i '' -e 's#{{&lt; / highlight &gt;}}#&lt;/code&gt;&lt;/pre&gt;#g' content/post/*.html
+    </code>
+  </pre>
+</p>
+
+<p>
+  I was in a little shock, something that I had set out to do in a few hours was completed in just under 15 minutes.
+<br/>
+<em>Note that the above sed calls are specific to OSX, and not the GNU variant of sed. RTFM if you are doing something similar on your platform.</em>
+</p>
+
+<p>
+  Now that I was already <em>done</em> with the translation from Jekyll, I needed a strategy for deployment. Previously, I had a script that would build my site in Jekyll and then synchronize the build onto S3. Honestly, it was probably good enough, but I needed a challenge. I thought about how nice it would be to simply push my changes to my github repo, and have everything taken care of for me. Today, this kind of automation is commonplace.
+</p>
+
+<p>
+  I found <a href="http://wercker.com">Wercker</a>, again mentioned in the Hugo documentation. What Wercker attempts to solve is a build and deploy process through containerization. This is another technology that I am in love with right now, so I rolled up my sleeves and dove in.
+</p>
+
+<h2>Automating Deployment with Wercker</h2>
+<p>Wercker wants you to use your Github or Bitbucket login. This makes sense, because this is where most of use keep our code. I currently do not have a need to publish private code to a wercker application. If you do, I haven't looked into possible options.</p>
+
+<p>
+  I followed <a href="https://gohugo.io/tutorials/automated-deployments/">the directions</a> published in the Hugo documentation about how to publish your Hugo site on Github pages. I don't want to use Github pages, I want to continue to use my S3 bucket. The steps are almost identical in getting there, except for the final step: where you want your build to live.
+</p>
+
+<p>
+  You are directed to <a href="http://devcenter.wercker.com/docs/deploy/s3.html">this page</a> in the Wercker documentation, which gets you pretty close to an automated Hugo / Github / S3 system.
+  <br/>
+  I ran into a few snags in getting this all put together.
+</p>
+
+<ul>
+  <li>I could not use my theme as a submodule in my site</li>
+  <li>I spent way too much time trying to hide my AWS secrets</li>
+  <li>The source_dir is named "build/" in Hugo</li>
+</ul>
+
+<p>Some of this may be obvious at some point, but were not when I was working through this. So I ended up with a wercker.yml file that looks like this:</p>
+
+<pre>
+  <code class="language-ruby">
+    box: debian
+    build:
+      steps:
+         - arjen/hugo-build@1.8.1:
+           theme: slender
+           config: "config.toml"
+           version: "0.15"
+           force_install: true
+           disable_pygments: true
+    deploy:
+      steps:
+        - wercker/s3sync@2.0.3:
+          source-dir: "public"
+          bucket-url: s3://brandon-harris.com
+          key-id: $AWS_ACCESS_KEY_ID
+          key-secret: $AWS_SECRET_ACCESS_KEY
+
+  </code>
+</pre>
+
+<p>Inside your Wercker Application, you can set environment variables.</p>
+<img src='/images/wercker_screenshots/wercker_settings.png' alt="Wercker Settings"/>
+<p>From here, you can access the interface to set your environment variables.</p>
+<img src='/images/wercker_screenshots/wercker_environment_variables.png' alt="Wercker Environment Variables" />
+<p>Then you can set any key, value variables that you need access to in your build steps.</p>
+<img src='/images/wercker_screenshots/wercker_env_vars_edit.png' alt="Wercker Environment Variables Editing" />
+
+<p>
+  After some trial and error, it's all working! All I have to do is commit my changes and:
+
+  <pre>
+    <code class="language-bash">
+      git push origin master
+    </code>
+  </pre>
+
+  Github receives my update, wercker detects the change, runs the build step inside a container, and finally runs the deploy step to synchronize changes to my S3 bucket. I even get an interface for all of this inside of Wercker.
+</p>
+
+<p>
+  You can see this entire blog content <a href="https://github.com/bbwharris/brandonharris">on github</a>, and you can view <a href="https://app.wercker.com/#applications/56bfa083a21e380e1e02bd2e">the wercker application that is used to deploy it</a>.
+</p>
+
+<p> For me, my goal was accomplished and from this experience I can see Hugo, Wercker, and containers being placed into my toolbox. Even simple static sites, can be made interesting again with new technology.</p>
