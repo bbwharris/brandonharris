@@ -45,7 +45,8 @@ nav ul li {
 /* Header */
 
 header {
-    height: 350px;
+    height: auto;
+    padding-bottom: 20px;
 }
 
 h1.brand {

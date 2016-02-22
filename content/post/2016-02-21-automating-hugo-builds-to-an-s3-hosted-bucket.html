@@ -9,13 +9,13 @@ url: /2016/02/21/automating-hugo-builds-to-an-s3-hosted-bucket
 
 <ol>
   <li>I wanted to evaluate Hugo</li>
-  <li>I want more exposure the Go language</li>
+  <li>I want more exposure to the Go language</li>
   <li>This is where I can experiment</li>
   <li>It's crazy fast</li>
 </ol>
 
 <p>
-  I have previously built dozens of tiny sites using Middleman, so it was the first thing I reached for in my toolbox. However, I wanted something new. I took a quick look at the Hugo. It is very promising and is just as functional as Middleman. My biggest worry was the time involvement in migrating from Jekyll to Hugo. While perusing the documentation I found this command:
+  I have previously built dozens of tiny sites using Middleman, so it was the first thing I reached for in my toolbox. However, I wanted something new. I took a quick look at Hugo. It is very promising and is just as functional as Middleman. My biggest worry was the time involvement in migrating from Jekyll to Hugo. While perusing the documentation I found this command:
 </p>
 <p>
   <pre>
@@ -68,7 +68,7 @@ url: /2016/02/21/automating-hugo-builds-to-an-s3-hosted-bucket
 </p>
 
 <h2>Automating Deployment with Wercker</h2>
-<p>Wercker wants you to use your Github or Bitbucket login. This makes sense, because this is where most of use keep our code. I currently do not have a need to publish private code to a wercker application. If you do, I haven't looked into possible options.</p>
+<p>Wercker wants you to use your Github or Bitbucket login. This makes sense, because this is where most of us keep our code. I currently do not have a need to publish private code to a wercker application. If you do, I haven't looked into possible options.</p>
 
 <p>
   I followed <a href="https://gohugo.io/tutorials/automated-deployments/">the directions</a> published in the Hugo documentation about how to publish your Hugo site on Github pages. I don't want to use Github pages, I want to continue to use my S3 bucket. The steps are almost identical in getting there, except for the final step: where you want your build to live.
@@ -86,7 +86,7 @@ url: /2016/02/21/automating-hugo-builds-to-an-s3-hosted-bucket
   <li>The source_dir is named "build/" in Hugo</li>
 </ul>
 
-<p>Some of this may be obvious at some point, but were not when I was working through this. So I ended up with a wercker.yml file that looks like this:</p>
+<p>Some of this may be obvious at some point, but was not when I was working through this. So I ended up with a wercker.yml file that looks like this:</p>
 
 <pre>
   <code class="language-ruby">
