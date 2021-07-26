@@ -1,4 +1,4 @@
-baseurl = "http://brandon-harris.com"
+baseurl = "https://brandonharris.pages.dev"
 title = "Brandon Harris"
 languageCode = "en-US"
 MetaDataFormat = "toml"
