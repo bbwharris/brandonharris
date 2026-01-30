@@ -1,66 +1,143 @@
 baseurl = "https://brandon-harris.com"
 title = "Brandon Harris"
 languageCode = "en-US"
-MetaDataFormat = "toml"
-theme = "slender"
-paginate = 3
-PaginatePath = "/"
+MetaDataFormat = "yaml"
+theme = "PaperMod"
+[pagination]
+pagerSize = 10
 
 [author]
-    name = "Brandon Harris"
-
-[permalinks]
-
-    # Permalink format for pages.
-    page = "/:title/"
-
-    # Permalink format for blog posts.
-    post = "/posts/:title/"
+name = "Brandon Harris"
 
 [params]
+env = "production"
+title = "Brandon Harris"
+description = "VP of Engineering at Cloudflare"
+keywords = ["Brandon Harris", "VP Engineering", "Cloudflare", "Leadership", "Engineering Management"]
+author = "Brandon Harris"
+images = ["<link or path of image for opengraph, twitter-cards>"]
+DateFormat = "January 2, 2006"
+defaultTheme = "dark"
+disableThemeToggle = false
+ShowReadingTime = true
+ShowPostNavLinks = true
+ShowBreadCrumbs = true
+ShowCodeCopyButtons = true
+ShowWordCount = true
+ShowRssButtonInSectionTermList = true
+UseHugoToc = true
+disableSpecial1stPost = false
+disableScrollToTop = false
+comments = false
+hidemeta = false
+hideSummary = false
+showtoc = false
+tocopen = false
 
-    # Change the color scheme of Slender.
-    # See above for preview and list of color schemes.
-    colorscheme = "white"
+[params.profileMode]
+enabled = true
+title = "Brandon Harris"
+subtitle = "VP of Engineering at Cloudflare"
+imageUrl = ""
+imageTitle = ""
+imageWidth = 120
+imageHeight = 120
+buttons = [
+    {name = "About", url = "/about/"},
+    {name = "Writing", url = "/posts/"}
+]
 
-    # Tagline; HTML accepted here. Keep it concise.
-    tagline = ""
+[params.homeInfoParams]
+Title = "Brandon Harris"
+Content = "VP of Engineering at Cloudflare. I lead engineering teams building infrastructure at global scale."
 
-    # Footer; Markdown accepted here.
-    footer = "Copyright 2016 &copy; Brandon Harris"
+[[params.socialIcons]]
+name = "linkedin"
+url = "https://www.linkedin.com/in/bbwharris"
 
-    # Description and keywords for <meta> tags.
-    # Remember to set this for your main page.
-    # This will be overridden by whatever is set by the page or post,
-    # defined by `description` and `keywords` variables in the front matter
-    # of the markdown file.
-    description = "Personal blog for Brandon Harris, a software engineer in Austin, TX"
-    keywords = "brandon harris, ruby, python, go, SQL, austin, software engineer austin, brandon harris blog"
+[[params.socialIcons]]
+name = "github"
+url = "https://github.com/bbwharris"
 
-    # Social links, must be full URLs (e.g. https://github.com/CrimsonRay/).
-    # Remove, comment, or leave blank any field to leave them out.
-    email = "mailto:brandon@brandon-harris.com"
-    github = "https://github.com/bbwharris"
-    twitter = "https://twitter.com/bbwharris"
-    linkedin = "https://www.linkedin.com/in/bbwharris"
-    facebook = "https://www.facebook.com/brandon.b.w.harris"
+[[params.socialIcons]]
+name = "twitter"
+url = "https://twitter.com/bbwharris"
 
-    # Google Analytics
-    # Remove, comment, or leave it blank if you don't have one.
-    ganalytics = "UA-8327470-1"
+[params.assets]
+disableHLJS = false
+disableFingerprinting = false
+
+[params.label]
+text = "Home"
+icon = "/apple-touch-icon.png"
+iconHeight = 35
+
+[params.analytics]
+google = {SiteVerificationTag = "XYZabc"}
+bing = {SiteVerificationTag = "XYZabc"}
+yandex = {SiteVerificationTag = "XYZabc"}
+
+[params.cover]
+hidden = true
+hiddenInList = true
+hiddenInSingle = true
+
+[params.editPost]
+URL = "https://github.com/bbwharris/brandonharris/content"
+Text = "Suggest Changes"
+appendFilePath = true
+
+[params.fuseOpts]
+isCaseSensitive = false
+shouldSort = true
+location = 0
+distance = 1000
+threshold = 0.4
+minMatchCharLength = 0
+keys = ["title", "permalink", "summary", "content"]
 
 [menu]
+[[menu.main]]
+identifier = "home"
+name = "Home"
+url = "/"
+weight = 10
 
-    # Menu for the nav bar.
-    # There must always be one item present (e.g. home).
-    [[menu.main]]
-    identifier = "home"
-    name       = "home"
-    url        = "/"
-    weight     = 0
+[[menu.main]]
+identifier = "about"
+name = "About"
+url = "/about/"
+weight = 20
 
-    [[menu.main]]
-    identifier = "about"
-    name       = "about"
-    url        = "/about/"
-    weight     = 1
+[[menu.main]]
+identifier = "posts"
+name = "Writing"
+url = "/posts/"
+weight = 30
+
+[[menu.main]]
+identifier = "archive"
+name = "Archive"
+url = "/archive/"
+weight = 40
+
+[markup]
+[markup.highlight]
+noClasses = false
+codeFences = true
+guessSyntax = true
+lineNos = true
+style = "monokai"
+
+[markup.goldmark]
+[markup.goldmark.renderer]
+hardWraps = false
+unsafe = true
+xhtml = false
+
+[privacy]
+[privacy.googleAnalytics]
+anonymizeIP = true
+disable = false
+respectDoNotTrack = true
+useSessionStorage = true

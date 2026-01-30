@@ -21,9 +21,9 @@ build:
     # http://devcenter.wercker.com/docs/steps/index.html
   steps:
     - arjen/hugo-build@1.8.1:
-        theme: slender
+        theme: PaperMod
         config: "config.toml"
-        version: "0.15"
+        version: "0.120.0"
         force_install: true
         disable_pygments: true
 deploy:
