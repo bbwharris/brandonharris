@@ -3,4 +3,3 @@ _site/*
 .ruby-gemset
 public/
 .#*
-themes/PaperMod/
