@@ -7,8 +7,9 @@ compatibility_flags = ["nodejs_compat"]
 command = "npm run build"
 
 # Serve the React UI from the worker
-[site]
-bucket = "./ui/dist"
+# Using 'assets' (newer) instead of 'site' (legacy) for Custom Domain support
+[assets]
+directory = "./ui/dist"
 
 # Durable Object for incident state persistence
 [[durable_objects.bindings]]
@@ -28,11 +29,9 @@ binding = "AI"
 [vars]
 ENVIRONMENT = "production"
 
-# Custom domain route (requires manual DNS setup first)
-# To use this route:
-# 1. Add CNAME record: agents -> incident-simulator.<account>.workers.dev
-# 2. Or use Cloudflare Dashboard: Workers -> incident-simulator -> Triggers -> Custom Domains
-# [[routes]]
-# pattern = "agents.brandon-harris.com/incident*"
-# zone_name = "brandon-harris.com"
-# custom_domain = true
+# Custom domain configuration
+# The pattern should be just the hostname for Custom Domains
+[[routes]]
+pattern = "agents.brandon-harris.com"
+zone_name = "brandon-harris.com"
+custom_domain = true

@@ -20,6 +20,31 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
   private readonly TICK_INTERVAL = 5000; // 5 seconds real time
   private tickInterval?: ReturnType<typeof setInterval>;
   
+  async onRequest(request: Request): Promise<Response> {
+    // Handle WebSocket upgrade requests
+    if (request.headers.get('Upgrade') === 'websocket') {
+      // The Agents SDK handles WebSocket upgrades automatically
+      // This method is called for regular HTTP requests
+      return new Response('WebSocket endpoint - use WebSocket protocol to connect', {
+        status: 426,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    }
+    
+    // Return current state for regular HTTP requests
+    return new Response(JSON.stringify({
+      status: 'ok',
+      agent: 'IncidentAgent',
+      connections: Array.from(this.getConnections()).length,
+      state: this.state,
+    }), {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  }
+
   async onConnect(connection: Connection) {
     console.log(`Client connected: ${connection.id}`);
     
@@ -476,9 +501,14 @@ export default {
     if (url.pathname.startsWith('/agents/')) {
       const response = await routeAgentRequest(request, env);
       if (response) {
-        // Add CORS headers
-        response.headers.set('Access-Control-Allow-Origin', '*');
-        return response;
+        // Create new response with CORS headers (original headers are immutable)
+        const newHeaders = new Headers(response.headers);
+        newHeaders.set('Access-Control-Allow-Origin', '*');
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: newHeaders,
+        });
       }
     }
     
