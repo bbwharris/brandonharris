@@ -17,7 +17,7 @@ keywords = ["Brandon Harris", "VP Engineering", "Cloudflare", "Leadership", "Eng
 author = "Brandon Harris"
 images = ["<link or path of image for opengraph, twitter-cards>"]
 DateFormat = "January 2, 2006"
-defaultTheme = "dark"
+defaultTheme = "light"
 disableThemeToggle = false
 ShowReadingTime = true
 ShowPostNavLinks = true
@@ -44,12 +44,17 @@ imageWidth = 120
 imageHeight = 120
 buttons = [
     {name = "About", url = "/about/"},
-    {name = "Writing", url = "/posts/"}
+    {name = "Writing", url = "/posts/"},
+    {name = "Projects", url = "/projects/"}
 ]
 
 [params.homeInfoParams]
 Title = "Brandon Harris"
-Content = "VP of Engineering at Cloudflare. I lead engineering teams building infrastructure at global scale."
+Content = """VP of Engineering at Cloudflare. I lead engineering teams building infrastructure at global scale.
+
+**Projects**
+
+- [Incident Response Simulator](/incident-simulator/) - An interactive simulation where you act as Incident Commander during a critical P0 incident. Built with Cloudflare Workers, Agents SDK, and React."""
 
 [[params.socialIcons]]
 name = "linkedin"
@@ -62,6 +67,10 @@ url = "https://github.com/bbwharris"
 [[params.socialIcons]]
 name = "twitter"
 url = "https://twitter.com/bbwharris"
+
+[[params.socialIcons]]
+name = "strava"
+url = "https://www.strava.com/athletes/bbwharris"
 
 [params.assets]
 disableHLJS = false
@@ -116,10 +125,16 @@ url = "/posts/"
 weight = 30
 
 [[menu.main]]
+identifier = "projects"
+name = "Projects"
+url = "/projects/"
+weight = 40
+
+[[menu.main]]
 identifier = "archive"
 name = "Archive"
 url = "/archive/"
-weight = 40
+weight = 50
 
 [markup]
 [markup.highlight]

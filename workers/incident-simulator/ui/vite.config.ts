@@ -3,8 +3,9 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  base: '/incident/',
   build: {
-    outDir: 'dist',
+    outDir: 'dist/incident',
     emptyOutDir: true,
   },
   server: {

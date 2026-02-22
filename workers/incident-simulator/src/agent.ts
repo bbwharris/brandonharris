@@ -489,16 +489,16 @@ export default {
       });
     }
     
-    // Handle WebSocket upgrade for agent connections
-    if (url.pathname.startsWith('/agents/') && request.headers.get('Upgrade') === 'websocket') {
+    // Handle WebSocket upgrade for agent connections (with or without /incident prefix)
+    if ((url.pathname.startsWith('/agents/') || url.pathname.startsWith('/incident/agents/')) && request.headers.get('Upgrade') === 'websocket') {
       const response = await routeAgentRequest(request, env);
       if (response) {
         return response;
       }
     }
     
-    // Route regular agent requests
-    if (url.pathname.startsWith('/agents/')) {
+    // Route regular agent requests (with or without /incident prefix)
+    if (url.pathname.startsWith('/agents/') || url.pathname.startsWith('/incident/agents/')) {
       const response = await routeAgentRequest(request, env);
       if (response) {
         // Create new response with CORS headers (original headers are immutable)

@@ -10,6 +10,7 @@ command = "npm run build"
 # Using 'assets' (newer) instead of 'site' (legacy) for Custom Domain support
 [assets]
 directory = "./ui/dist"
+not_found_handling = "single-page-application"
 
 # Durable Object for incident state persistence
 [[durable_objects.bindings]]
@@ -29,9 +30,13 @@ binding = "AI"
 [vars]
 ENVIRONMENT = "production"
 
-# Custom domain configuration
-# The pattern should be just the hostname for Custom Domains
+# Custom domain configuration - handles root path
 [[routes]]
 pattern = "agents.brandon-harris.com"
 zone_name = "brandon-harris.com"
 custom_domain = true
+
+# Route for /incident paths
+[[routes]]
+pattern = "agents.brandon-harris.com/incident*"
+zone_name = "brandon-harris.com"
