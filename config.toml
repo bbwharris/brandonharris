@@ -1,7 +1,6 @@
 baseurl = "https://brandon-harris.com"
 title = "Brandon Harris"
 languageCode = "en-US"
-MetaDataFormat = "yaml"
 theme = "PaperMod"
 [pagination]
 pagerSize = 10
@@ -11,14 +10,12 @@ name = "Brandon Harris"
 
 [params]
 env = "production"
-title = "Brandon Harris"
-description = "VP of Engineering at Cloudflare"
+description = "Welcome. I'm Brandon Harris, VP of Engineering at Cloudflare. I lead engineering teams building infrastructure at global scale."
 keywords = ["Brandon Harris", "VP Engineering", "Cloudflare", "Leadership", "Engineering Management"]
 author = "Brandon Harris"
-images = ["<link or path of image for opengraph, twitter-cards>"]
+#images = ["<link or path of image for opengraph, twitter-cards>"]
 DateFormat = "January 2, 2006"
 defaultTheme = "light"
-disableThemeToggle = false
 ShowReadingTime = true
 ShowPostNavLinks = true
 ShowBreadCrumbs = true
@@ -26,35 +23,16 @@ ShowCodeCopyButtons = true
 ShowWordCount = true
 ShowRssButtonInSectionTermList = true
 UseHugoToc = true
-disableSpecial1stPost = false
-disableScrollToTop = false
 comments = false
-hidemeta = false
-hideSummary = false
-showtoc = false
-tocopen = false
 
 [params.profileMode]
 enabled = true
-title = "Brandon Harris"
 subtitle = "VP of Engineering at Cloudflare"
-imageUrl = ""
-imageTitle = ""
-imageWidth = 120
-imageHeight = 120
 buttons = [
     {name = "About", url = "/about/"},
     {name = "Writing", url = "/posts/"},
     {name = "Projects", url = "/projects/"}
 ]
-
-[params.homeInfoParams]
-Title = "Brandon Harris"
-Content = """VP of Engineering at Cloudflare. I lead engineering teams building infrastructure at global scale.
-
-**Projects**
-
-- [Incident Response Simulator](/incident-simulator/) - An interactive simulation where you act as Incident Commander during a critical P0 incident. Built with Cloudflare Workers, Agents SDK, and React."""
 
 [[params.socialIcons]]
 name = "linkedin"
@@ -81,29 +59,10 @@ text = "Home"
 icon = "/apple-touch-icon.png"
 iconHeight = 35
 
-[params.analytics]
-google = {SiteVerificationTag = "XYZabc"}
-bing = {SiteVerificationTag = "XYZabc"}
-yandex = {SiteVerificationTag = "XYZabc"}
-
-[params.cover]
-hidden = true
-hiddenInList = true
-hiddenInSingle = true
-
 [params.editPost]
 URL = "https://github.com/bbwharris/brandonharris/content"
 Text = "Suggest Changes"
 appendFilePath = true
-
-[params.fuseOpts]
-isCaseSensitive = false
-shouldSort = true
-location = 0
-distance = 1000
-threshold = 0.4
-minMatchCharLength = 0
-keys = ["title", "permalink", "summary", "content"]
 
 [menu]
 [[menu.main]]
@@ -149,10 +108,3 @@ style = "monokai"
 hardWraps = false
 unsafe = true
 xhtml = false
-
-[privacy]
-[privacy.googleAnalytics]
-anonymizeIP = true
-disable = false
-respectDoNotTrack = true
-useSessionStorage = true

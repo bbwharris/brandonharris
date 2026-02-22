@@ -3,3 +3,4 @@ _site/*
 .ruby-gemset
 public/
 .#*
+.hugo_build.lock

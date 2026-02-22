@@ -472,3 +472,37 @@ MIT - See LICENSE file in repository root
 ## Author
 
 Brandon Harris - Guiding AI
+
+---
+
+## Future Work
+
+### Challenge & Depth
+- [ ] **Multiple Incident Scenarios**: Add scenario selector (kernel patch, DDoS attack, data breach, DNS hijacking) with different severity levels (P0, P1, P2)
+- [ ] **Time Pressure Mechanics**: Real countdown timer showing business impact and escalating consequences
+- [ ] **Randomized Events**: Unexpected complications during patching, cascading failures, misleading logs
+
+### Enhanced Gameplay  
+- [ ] **Scoring System**: Track MTTR, points for correct actions, penalties for mistakes, leaderboard
+- [ ] **Progressive Difficulty**: Tutorial mode, hard mode, expert mode with multiple concurrent incidents
+- [ ] **Decision Consequences**: Branching paths based on user choices, trade-offs, post-incident review
+
+### UI/UX Improvements
+- [ ] **Visual Polish**: Animated metrics, region map visualization, sound effects
+- [ ] **Better Onboarding**: Interactive tutorial, contextual help, command auto-completion
+- [ ] **Mobile Responsiveness**: Layout for tablets/phones, touch-friendly terminal
+
+### Technical Enhancements
+- [ ] **Multiplayer Mode**: Multiple users in same incident, role-based access
+- [ ] **Analytics**: Track common mistakes, most used commands, completion rates
+- [ ] **Export/Sharing**: Share incident reports, export as blog post, screenshot mode
+
+### Bug Fixes & Polish
+- [ ] **Error Handling**: Better error messages for AI failures, graceful degradation, retry logic
+- [ ] **State Management**: Save/resume sessions, better cleanup, handle browser refresh
+
+## Implementation Notes
+- AI requires `wrangler login` to work in production
+- WebSocket handles both string and binary messages
+- Assets served via `[assets]` not `[site]` for Custom Domain support
+- Agent needs `onRequest` method for HTTP health checks
