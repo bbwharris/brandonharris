@@ -5,8 +5,6 @@ layout: single
 url: /incident-simulator/
 ---
 
-<a href="https://agents.brandon-harris.com" target="_blank">Launch the Simulator</a>
-
 ## 🚨 Experience Incident Response Firsthand
 
 Step into the role of an Incident Commander during a critical P0 incident! This interactive simulation puts you in charge of responding to a kernel vulnerability affecting hundreds of servers and millions of requests per second.
@@ -20,10 +18,11 @@ This simulator is built with:
 - **React**: Interactive terminal-style UI
 - **SQLite**: Persistent state management
 
-### Source Code
-
-The simulator is open source, and was an AI orchestration. You can view the implementation on [GitHub](https://github.com/bbwharris/brandonharris/tree/main/workers/incident-simulator).
-
+<div class="buttons" style="max-width: none;">
+  <a class="button" href="https://agents.brandon-harris.com/incident/" target="_blank" style="box-shadow: none;">
+    <span class="button-inner">🚨 Launch Simulator</span>
+  </a>
+</div>
 
 ### Disclosure
 
