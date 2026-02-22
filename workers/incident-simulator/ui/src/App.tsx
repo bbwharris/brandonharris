@@ -47,15 +47,29 @@ const App: React.FC = () => {
       addToTerminal('🔌 Connected to incident response system');
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
       try {
-        const data = JSON.parse(event.data);
+        // Handle both string and binary (Blob/ArrayBuffer) data
+        let text: string;
+        if (typeof event.data === 'string') {
+          text = event.data;
+        } else if (event.data instanceof Blob) {
+          text = await event.data.text();
+        } else if (event.data instanceof ArrayBuffer) {
+          text = new TextDecoder().decode(event.data);
+        } else {
+          console.error('Unknown message format:', typeof event.data, event.data);
+          return;
+        }
+        
+        const data = JSON.parse(text);
         
         switch (data.type) {
           case 'system':
             addToTerminal(data.content);
             break;
           case 'state_update':
+          case 'cf_agent_state':
             setState(data.state);
             break;
           case 'notification':

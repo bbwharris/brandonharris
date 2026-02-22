@@ -10,16 +10,29 @@ command = "npm run build"
 [site]
 bucket = "./ui/dist"
 
+# Durable Object for incident state persistence
 [[durable_objects.bindings]]
 name = "IncidentAgent"
 class_name = "IncidentAgent"
 
+# Initial migration to create SQLite table
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["IncidentAgent"]
 
+# Workers AI binding for Llama 3.1
 [ai]
 binding = "AI"
 
+# Production environment variable
 [vars]
 ENVIRONMENT = "production"
+
+# Custom domain route (requires manual DNS setup first)
+# To use this route:
+# 1. Add CNAME record: agents -> incident-simulator.<account>.workers.dev
+# 2. Or use Cloudflare Dashboard: Workers -> incident-simulator -> Triggers -> Custom Domains
+# [[routes]]
+# pattern = "agents.brandon-harris.com/incident*"
+# zone_name = "brandon-harris.com"
+# custom_domain = true

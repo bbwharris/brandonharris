@@ -278,22 +278,88 @@ workers/incident-simulator/
 1. Cloudflare account
 2. Wrangler CLI installed: `npm install -g wrangler`
 3. Authenticated: `npx wrangler login`
+4. Domain (e.g., brandon-harris.com) added to Cloudflare DNS
 
-### Deploy Steps
+### Pre-Deployment Setup
+
+Before deploying, you need to set up the subdomain:
+
+#### Step 1: Add DNS Record (Manual)
+
+Go to **Cloudflare Dashboard** → **DNS** → **Add Record**:
+
+**Option A - CNAME (Recommended for Workers):**
+- Type: `CNAME`
+- Name: `agents`
+- Target: `incident-simulator` (leave as just the Worker name)
+- Proxy status: Enabled (orange cloud)
+
+**Option B - A Record:**
+- Type: `A`
+- Name: `agents`
+- IPv4 address: `192.0.2.1` (placeholder, will be updated by Worker)
+- Proxy status: Enabled (orange cloud)
+
+#### Step 2: Deploy the Worker
 
 ```bash
-# Build the UI
-cd ui
+# Build the UI production bundle
+cd workers/incident-simulator/ui
 npm run build
-cd ..
 
-# Deploy the Worker
+# Deploy (creates Worker, Durable Objects, AI binding)
+cd workers/incident-simulator
 npx wrangler deploy
-
-# (Optional) Set up custom domain
-# Add a route in Cloudflare dashboard or:
-npx wrangler route add agents.brandon-harris.com/incident
 ```
+
+The deploy command will:
+- ✅ Upload Worker code
+- ✅ Create Durable Objects namespace
+- ✅ Apply SQLite migration
+- ✅ Set up Workers AI binding
+- ✅ Configure static asset serving
+
+#### Step 3: Configure Custom Domain (Manual)
+
+After deploy, connect the subdomain:
+
+**Cloudflare Dashboard** → **Workers & Pages** → **incident-simulator** → **Settings** → **Triggers**:
+
+1. Click **Add Custom Domain**
+2. Enter: `agents.brandon-harris.com`
+3. Click **Add Domain**
+
+Wait 30-60 seconds for SSL certificate provisioning.
+
+#### Step 4: Verify Deployment
+
+```bash
+# Test the API
+curl https://agents.brandon-harris.com
+
+# Test WebSocket (should return 101 Switching Protocols)
+curl -i -N \
+  -H "Connection: Upgrade" \
+  -H "Upgrade: websocket" \
+  -H "Sec-WebSocket-Version: 13" \
+  -H "Sec-WebSocket-Key: test" \
+  https://agents.brandon-harris.com/agents/incident-agent/session
+```
+
+### Alternative: Using Routes (Instead of Custom Domain)
+
+If you prefer using routes instead of Custom Domains, uncomment in `wrangler.toml`:
+
+```toml
+[[routes]]
+pattern = "agents.brandon-harris.com/incident*"
+zone_name = "brandon-harris.com"
+custom_domain = true
+```
+
+Then deploy again: `npx wrangler deploy`
+
+**Note**: Custom Domains are preferred over routes for new projects as they provide better performance and automatic SSL.
 
 ### Hugo Integration
 
