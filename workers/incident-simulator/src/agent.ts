@@ -1,4 +1,4 @@
-import { Agent, routeAgentRequest, unstable_callable as callable } from 'agents';
+import { Agent, routeAgentRequest, callable } from 'agents';
 import type { Connection } from 'agents';
 import type { IncidentState, CommandResult, Message } from './types';
 import { createInitialState } from './scenario';

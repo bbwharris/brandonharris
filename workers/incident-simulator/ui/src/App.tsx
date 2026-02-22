@@ -37,7 +37,7 @@ const App: React.FC = () => {
   }, []);
 
   const connectWebSocket = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    if (wsRef.current?.readyState === WebSocket.OPEN || wsRef.current?.readyState === WebSocket.CONNECTING) return;
 
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
@@ -83,6 +83,12 @@ const App: React.FC = () => {
               addToTerminal(data.result.output);
             }
             break;
+          // Ignore internal SDK messages
+          case 'cf_agent_identity':
+          case 'cf_agent_mcp_servers':
+          case 'connect':
+          case 'state:update':
+            break;
           default:
             console.log('Unknown message type:', data.type);
         }
@@ -111,13 +117,26 @@ const App: React.FC = () => {
   }, [addToTerminal]);
 
   useEffect(() => {
-    connectWebSocket();
+    let isMounted = true;
+    
+    const connect = () => {
+      if (!isMounted) return;
+      connectWebSocket();
+    };
+    
+    connect();
 
     return () => {
+      isMounted = false;
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
       }
-      wsRef.current?.close();
+      if (wsRef.current) {
+        wsRef.current.onclose = null; // Prevent reconnection attempt
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
   }, [connectWebSocket]);
 

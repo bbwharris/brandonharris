@@ -9,8 +9,8 @@
     "tail": "wrangler tail"
   },
   "dependencies": {
-    "agents": "^0.0.55",
-    "ai": "^4.0.0"
+    "agents": "^0.5.1",
+    "ai": "^6.0.97"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240201.0",
