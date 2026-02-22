@@ -59,11 +59,6 @@ text = "Home"
 icon = "/apple-touch-icon.png"
 iconHeight = 35
 
-[params.editPost]
-URL = "https://github.com/bbwharris/brandonharris/content"
-Text = "Suggest Changes"
-appendFilePath = true
-
 [menu]
 [[menu.main]]
 identifier = "home"

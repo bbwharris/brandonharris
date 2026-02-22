@@ -1,6 +1,6 @@
 ---
 title: "About"
-description: "Brandon Harris - VP of Engineering at Cloudflare"
+description: "Brandon Harris"
 aliases:
   - about-us
   - contact
