@@ -1,0 +1,85 @@
+.terminal {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #0d1117;
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #161b22;
+  border-bottom: 1px solid #30363d;
+  font-size: 13px;
+}
+
+.terminal-title {
+  font-weight: 600;
+  color: #c9d1d9;
+}
+
+.terminal-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background-color: #238636;
+  color: white;
+}
+
+.terminal-output {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.terminal-line {
+  margin-bottom: 4px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.terminal-line pre {
+  margin: 0;
+  font-family: inherit;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.terminal-input-container {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: #161b22;
+  border-top: 1px solid #30363d;
+}
+
+.terminal-prompt {
+  color: #58a6ff;
+  margin-right: 10px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #c9d1d9;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.terminal-input::placeholder {
+  color: #484f58;
+}
+
+.terminal-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

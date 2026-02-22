@@ -1,0 +1,20 @@
+{
+  "name": "incident-simulator",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "echo 'Building UI...' && cd ui && npm install && npm run build",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "agents": "^0.0.55",
+    "ai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240201.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^4.67.0"
+  }
+}
