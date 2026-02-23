@@ -6,6 +6,7 @@ interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: string;
+  persona?: 'sre' | 'security';
 }
 
 interface ChatProps {
@@ -13,6 +14,16 @@ interface ChatProps {
   onSendMessage: (content: string) => void;
   connected: boolean;
 }
+
+const detectPersona = (content: string): 'sre' | 'security' | null => {
+  if (content.includes('🔒') || content.includes('SECURITY') || content.includes('Security Auditor')) {
+    return 'security';
+  }
+  if (content.includes('👨‍💻') || content.includes('SRE') || content.includes('SRE INVESTIGATION')) {
+    return 'sre';
+  }
+  return null;
+};
 
 const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected }) => {
   const [input, setInput] = useState('');
@@ -33,16 +44,27 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected }) => {
   };
 
   const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
     });
+  };
+
+  const getMessageRoleDisplay = (message: Message) => {
+    if (message.role === 'user') return { icon: '👤', label: 'You', color: '#58a6ff' };
+    if (message.role === 'system') return { icon: '🤖', label: 'System', color: '#8b949e' };
+
+    const persona = detectPersona(message.content);
+    if (persona === 'security') {
+      return { icon: '🔒', label: 'Security', color: '#8957e5' };
+    }
+    return { icon: '👨‍💻', label: 'SRE', color: '#3fb950' };
   };
 
   return (
     <div className="chat">
       <div className="chat-header">
-        <span className="chat-title">💬 On-Call Engineer</span>
+        <span className="chat-title">💬 AI Agents</span>
         <span className="chat-status">
           {connected ? 'Online' : 'Offline'}
         </span>
@@ -53,25 +75,36 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected }) => {
           <div className="chat-empty">
             <p>No messages yet.</p>
             <p className="chat-hint">
-              Ask questions about the incident, CVE details, or guidance on next steps.
+              AI agents will message you during the incident. You can also ask questions.
             </p>
           </div>
         )}
-        
-        {messages.map((message) => (
-          <div 
-            key={message.id} 
-            className={`chat-message ${message.role}`}
-          >
-            <div className="message-header">
-              <span className="message-role">
-                {message.role === 'assistant' ? '👨‍💻 SRE' : message.role === 'user' ? '👤 You' : '🤖 System'}
-              </span>
-              <span className="message-time">{formatTime(message.timestamp)}</span>
+
+        {messages.map((message) => {
+          const roleDisplay = getMessageRoleDisplay(message);
+          return (
+            <div
+              key={message.id}
+              className={`chat-message ${message.role}`}
+              style={message.role === 'assistant' ? {
+                borderLeft: `3px solid ${roleDisplay.color}`
+              } : {}}
+            >
+              <div className="message-header">
+                <span
+                  className="message-role"
+                  style={{ color: roleDisplay.color }}
+                >
+                  {roleDisplay.icon} {roleDisplay.label}
+                </span>
+                <span className="message-time">{formatTime(message.timestamp)}</span>
+              </div>
+              <div className="message-content" style={{ whiteSpace: 'pre-wrap' }}>
+                {message.content}
+              </div>
             </div>
-            <div className="message-content">{message.content}</div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 

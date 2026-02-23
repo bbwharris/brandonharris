@@ -1,5 +1,5 @@
 import type { CommandResult, Metrics, Region, IncidentState } from './types';
-import { REGIONS, TOTAL_SERVERS, getLogMessages, CVE_DETAILS, HINTS } from './scenario';
+import { REGIONS, TOTAL_SERVERS, getLogMessages, CVE_DETAILS, HINTS, PATCH_VERSIONS } from './scenario';
 
 export class IncidentTools {
   private state: IncidentState;
@@ -9,30 +9,44 @@ export class IncidentTools {
   }
   
   getStatus(): CommandResult {
-    const patchedCount = Object.values(this.state.patchStatus).filter(
-      s => s === 'complete'
+    const workflows = this.state.regionWorkflows;
+    const patchedCount = Object.values(workflows).filter(
+      w => w.state === 'patched' || w.state === 'security_review' || w.state === 'verified'
     ).length;
-    
-    const inProgressCount = Object.values(this.state.patchStatus).filter(
-      s => s === 'in_progress'
+
+    const inProgressCount = Object.values(workflows).filter(
+      w => w.state === 'patching' || w.state === 'rolling_back'
     ).length;
-    
+
     let output = `\nINCIDENT STATUS - ${this.state.cveId}\n`;
     output += `${'='.repeat(31 + this.state.cveId.length)}\n\n`;
     output += `Phase:            ${this.state.phase.toUpperCase()}\n`;
+    output += `AI Persona:       ${this.state.aiPersona ? this.state.aiPersona.toUpperCase() : 'NONE'}\n`;
     output += `Severity:         ${this.state.severity}\n`;
     output += `Simulated Time:   ${new Date(this.state.simTime).toLocaleString()}\n`;
-    output += `Affected Servers: ${this.state.affectedServers}\n`;
-    output += `Patched:          ${patchedCount}/${REGIONS.length} regions\n`;
-    output += `In Progress:      ${inProgressCount} regions\n`;
     output += `Error Rate:       ${this.state.errorRate.toFixed(2)}%\n`;
     output += `P99 Latency:      ${this.state.latencyP99}ms\n`;
-    output += `Traffic:          ${(this.state.trafficVolume / 1000000).toFixed(1)}M req/s\n`;
-    
+    output += `Traffic:          ${(this.state.trafficVolume / 1000000).toFixed(1)}M req/s\n\n`;
+
+    output += `REGION WORKFLOWS:\n`;
+    output += `${'-'.repeat(50)}\n`;
+    REGIONS.forEach(region => {
+      const workflow = workflows[region.name];
+      const stateIcon = this.getWorkflowStateIcon(workflow.state);
+      const progress = workflow.state === 'patching' || workflow.state === 'rolling_back'
+        ? ` (${workflow.patchProgress}%)`
+        : '';
+      output += `${stateIcon} ${region.name.padEnd(12)} ${workflow.state.replace(/_/g, ' ').toUpperCase()}${progress}\n`;
+    });
+
+    output += `\n`;
+    output += `Patched:          ${patchedCount}/${REGIONS.length} regions\n`;
+    output += `In Progress:      ${inProgressCount} regions\n`;
+
     if (this.state.exploitationDetected) {
       output += `\n⚠️  WARNING: Exploitation attempts detected in logs`;
     }
-    
+
     return {
       success: true,
       output,
@@ -43,7 +57,7 @@ export class IncidentTools {
   getMetrics(service: string): CommandResult {
     let output = `\n📊 METRICS: ${service.toUpperCase()}\n`;
     output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    
+
     if (service === 'overview' || service === 'all') {
       output += `Global Metrics:\n`;
       output += `  Error Rate:     ${this.state.errorRate.toFixed(2)}% ${this.getErrorTrend()}\n`;
@@ -51,15 +65,18 @@ export class IncidentTools {
       output += `  Traffic:        ${(this.state.trafficVolume / 1000000).toFixed(1)}M req/s\n`;
       output += `  Health Score:   ${this.getHealthScore()}%\n\n`;
     }
-    
+
     output += `Regional Breakdown:\n`;
     REGIONS.forEach(region => {
-      const status = this.state.patchStatus[region.name];
-      const statusIcon = status === 'complete' ? '✓' : status === 'in_progress' ? '⟳' : '○';
+      const workflow = this.state.regionWorkflows[region.name];
+      const stateIcon = this.getWorkflowStateIcon(workflow.state);
       const healthIcon = this.getRegionHealthIcon(region.name);
-      output += `  ${statusIcon} ${region.name.padEnd(12)} ${region.servers} servers ${healthIcon}\n`;
+      const progress = workflow.state === 'patching' || workflow.state === 'rolling_back'
+        ? `(${workflow.patchProgress}%)`
+        : '';
+      output += `  ${stateIcon} ${region.name.padEnd(12)} ${workflow.errorRate.toFixed(1)}% ${progress.padEnd(6)} ${healthIcon}\n`;
     });
-    
+
     return {
       success: true,
       output,
@@ -96,104 +113,61 @@ export class IncidentTools {
   getRegionStatus(): CommandResult {
     let output = `\n🌍 REGIONAL STATUS\n`;
     output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    
+
     REGIONS.forEach(region => {
-      const status = this.state.patchStatus[region.name];
-      const statusText = status.toUpperCase().replace('_', ' ');
-      output += `${region.name.toUpperCase()}\n`;
-      output += `  Servers:  ${region.servers}\n`;
-      output += `  Status:   ${statusText}\n`;
-      output += `  Health:   ${this.getRegionHealth(region.name)}\n\n`;
+      const workflow = this.state.regionWorkflows[region.name];
+      const stateIcon = this.getWorkflowStateIcon(workflow.state);
+      const statusText = workflow.state.toUpperCase().replace(/_/g, ' ');
+
+      output += `${stateIcon} ${region.name.toUpperCase()}\n`;
+      output += `  Servers:     ${region.servers}\n`;
+      output += `  Status:      ${statusText}\n`;
+
+      if (workflow.state === 'patching' || workflow.state === 'rolling_back') {
+        output += `  Progress:    ${workflow.patchProgress}%\n`;
+      }
+
+      if (workflow.patchVersion) {
+        output += `  Patch:       ${workflow.patchVersion}\n`;
+      }
+
+      output += `  Error Rate:  ${workflow.errorRate.toFixed(2)}%\n`;
+
+      if (workflow.securityItems.length > 0) {
+        const verifiedCount = workflow.securityItems.filter(i => i.verified).length;
+        output += `  Security:    ${verifiedCount}/${workflow.securityItems.length} verified\n`;
+      }
+
+      output += `\n`;
     });
-    
+
     return {
       success: true,
       output,
       regions: this.getRegionList(),
     };
   }
-  
-  async patchRegion(region: string): Promise<CommandResult> {
-    if (!REGIONS.find(r => r.name === region)) {
-      return {
-        success: false,
-        output: `❌ Region '${region}' not found. Available regions: ${REGIONS.map(r => r.name).join(', ')}`,
-      };
-    }
-    
-    const currentStatus = this.state.patchStatus[region];
-    if (currentStatus === 'complete') {
-      return {
-        success: false,
-        output: `ℹ️  Region '${region}' is already patched.`,
-      };
-    }
-    
-    if (currentStatus === 'in_progress') {
-      return {
-        success: false,
-        output: `⏳ Patch already in progress for '${region}'. Use 'status' to check progress.`,
-      };
-    }
-    
-    // Simulate patching process
-    this.state.patchStatus[region] = 'in_progress';
-    
+
+  listPatches(): CommandResult {
+    let output = `\n📦 AVAILABLE PATCH VERSIONS\n`;
+    output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    PATCH_VERSIONS.forEach(patch => {
+      output += `Version: ${patch.version}\n`;
+      output += `  Description: ${patch.description}\n`;
+      output += `  Kernel Range: ${patch.kernelRange}\n\n`;
+    });
+
+    output += `Usage: patch <region> <version>\n`;
+    output += `Example: patch us-east 6.5.0-9-hotfix\n`;
+
     return {
       success: true,
-      output: `🚀 Initiated kernel patch rollout for ${region}\n\n` +
-              `Target: ${CVE_DETAILS.patchedKernel}\n` +
-              `Affected servers: ${REGIONS.find(r => r.name === region)?.servers}\n` +
-              `ETA: ~8-12 minutes\n\n` +
-              `Monitoring for issues...`,
+      output,
     };
   }
   
-  async rollbackRegion(region: string): Promise<CommandResult> {
-    if (!REGIONS.find(r => r.name === region)) {
-      return {
-        success: false,
-        output: `❌ Region '${region}' not found.`,
-      };
-    }
-    
-    const currentStatus = this.state.patchStatus[region];
-    if (currentStatus === 'pending') {
-      return {
-        success: false,
-        output: `ℹ️  Region '${region}' has not been patched yet.`,
-      };
-    }
-    
-    this.state.patchStatus[region] = 'pending';
-    
-    return {
-      success: true,
-      output: `↩️  Rolling back patch in ${region}\n\n` +
-              `Reverting to previous kernel version...\n` +
-              `Servers affected: ${REGIONS.find(r => r.name === region)?.servers}\n` +
-              `ETA: ~5-8 minutes`,
-    };
-  }
-  
-  sendAlert(team: string, message: string): CommandResult {
-    const validTeams = ['sre', 'security', 'leadership', 'customers', 'all'];
-    
-    if (!validTeams.includes(team.toLowerCase())) {
-      return {
-        success: false,
-        output: `❌ Invalid team '${team}'. Valid teams: ${validTeams.join(', ')}`,
-      };
-    }
-    
-    return {
-      success: true,
-      output: `📢 Alert sent to ${team.toUpperCase()}\n\n` +
-              `Message: "${message}"\n\n` +
-              `Status: Delivered to ${team === 'all' ? '5' : '1'} channel(s)`,
-    };
-  }
-  
+
   getHint(): CommandResult {
     const phase = this.state.phase;
     const hints = HINTS[phase as keyof typeof HINTS] || HINTS.general;
@@ -208,10 +182,10 @@ export class IncidentTools {
   }
   
   private getCurrentMetrics(): Metrics {
-    const patchedCount = Object.values(this.state.patchStatus).filter(
-      s => s === 'complete'
+    const patchedCount = Object.values(this.state.regionWorkflows).filter(
+      w => w.state === 'patched' || w.state === 'security_review' || w.state === 'verified'
     ).length;
-    
+
     return {
       errorRate: this.state.errorRate,
       latencyP99: this.state.latencyP99,
@@ -220,20 +194,25 @@ export class IncidentTools {
       patchedServers: patchedCount,
     };
   }
-  
+
   private getRegionList(): Region[] {
-    return REGIONS.map(r => ({
-      ...r,
-      status: this.getRegionHealth(r.name) as any,
-      patchStatus: this.state.patchStatus[r.name],
-    }));
+    return REGIONS.map(r => {
+      const workflow = this.state.regionWorkflows[r.name];
+      return {
+        ...r,
+        status: this.getRegionHealth(r.name) as any,
+        patchStatus: workflow.state === 'patched' || workflow.state === 'security_review' || workflow.state === 'verified' ? 'complete' :
+                     workflow.state === 'patching' ? 'in_progress' :
+                     workflow.state === 'patch_failed' ? 'failed' : 'pending',
+      };
+    });
   }
-  
+
   private getRegionHealth(region: string): string {
-    // Simulate health based on patch status and random factors
-    const patchStatus = this.state.patchStatus[region];
-    if (patchStatus === 'failed') return 'critical';
-    if (this.state.errorRate > 2) return 'degraded';
+    // Simulate health based on workflow state and error rate
+    const workflow = this.state.regionWorkflows[region];
+    if (workflow.state === 'patch_failed') return 'critical';
+    if (workflow.errorRate > 2) return 'degraded';
     return 'healthy';
   }
   
@@ -242,6 +221,21 @@ export class IncidentTools {
     if (health === 'critical') return '🔴';
     if (health === 'degraded') return '🟡';
     return '🟢';
+  }
+
+  private getWorkflowStateIcon(state: string): string {
+    switch (state) {
+      case 'idle': return '⚪';
+      case 'investigating': return '🔍';
+      case 'ready_to_patch': return '✓';
+      case 'patching': return '🔧';
+      case 'patch_failed': return '❌';
+      case 'rolling_back': return '↩️';
+      case 'patched': return '✅';
+      case 'security_review': return '🔒';
+      case 'verified': return '🔐';
+      default: return '⚪';
+    }
   }
   
   private getErrorTrend(): string {
@@ -257,7 +251,9 @@ export class IncidentTools {
   }
   
   private getHealthScore(): number {
-    const patched = Object.values(this.state.patchStatus).filter(s => s === 'complete').length;
+    const patched = Object.values(this.state.regionWorkflows).filter(
+      w => w.state === 'patched' || w.state === 'security_review' || w.state === 'verified'
+    ).length;
     const baseScore = 70;
     const patchBonus = (patched / REGIONS.length) * 30;
     const errorPenalty = this.state.errorRate * 5;

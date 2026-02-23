@@ -1,29 +1,74 @@
+export type WorkflowState =
+  | 'idle'
+  | 'investigating'
+  | 'ready_to_patch'
+  | 'patching'
+  | 'patch_failed'
+  | 'rolling_back'
+  | 'patched'
+  | 'security_review'
+  | 'verified';
+
+export type AIPersona = 'sre' | 'security' | null;
+
+export interface SecurityChecklistItem {
+  id: string;
+  description: string;
+  verified: boolean;
+  finding: string;
+}
+
+export interface RegionWorkflow {
+  region: string;
+  state: WorkflowState;
+  patchVersion?: string;
+  patchProgress: number;
+  requiredPatch: string;
+  investigationComplete: boolean;
+  securityItems: SecurityChecklistItem[];
+  securityVerified: boolean;
+  patchStartTime?: number;
+  errorRate: number;
+}
+
+export interface PatchVersion {
+  version: string;
+  description: string;
+  kernelRange: string;
+}
+
 export interface IncidentState {
   phase: 'triage' | 'investigation' | 'response' | 'resolved';
   simTime: string;
   realStartTime: number;
-  
+
   severity: 'P0' | 'P1' | 'P2';
   affectedRegions: string[];
   affectedServers: number;
   totalServers: number;
   patchStatus: Record<string, 'pending' | 'in_progress' | 'complete' | 'failed'>;
-  
+
   actions: Action[];
   messages: Message[];
-  
+
   errorRate: number;
   latencyP99: number;
   trafficVolume: number;
-  
+
   cveId: string;
   cveDescription: string;
   patchAvailable: boolean;
   exploitationDetected: boolean;
-  
+
   hintsUsed: number;
   resolved: boolean;
   resolutionTime?: number;
+
+  // New workflow fields
+  regionWorkflows: Record<string, RegionWorkflow>;
+  aiPersona: AIPersona;
+  securityPhaseActive: boolean;
+  sreConfirmed: boolean;
 }
 
 export interface Action {

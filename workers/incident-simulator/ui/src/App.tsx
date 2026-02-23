@@ -4,6 +4,25 @@ import Dashboard from './Dashboard';
 import Chat from './Chat';
 import './App.css';
 
+interface SecurityChecklistItem {
+  id: string;
+  description: string;
+  verified: boolean;
+  finding: string;
+}
+
+interface RegionWorkflow {
+  region: string;
+  state: string;
+  patchVersion?: string;
+  patchProgress: number;
+  requiredPatch: string;
+  investigationComplete: boolean;
+  securityItems: SecurityChecklistItem[];
+  securityVerified: boolean;
+  errorRate: number;
+}
+
 interface IncidentState {
   phase: string;
   simTime: string;
@@ -18,6 +37,10 @@ interface IncidentState {
   messages: any[];
   resolved: boolean;
   cveId: string;
+  aiPersona: string | null;
+  securityPhaseActive: boolean;
+  sreConfirmed: boolean;
+  regionWorkflows: Record<string, RegionWorkflow>;
 }
 
 const WS_URL = import.meta.env.DEV 

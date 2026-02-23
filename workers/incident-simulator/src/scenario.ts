@@ -1,4 +1,4 @@
-import type { IncidentState, Region, LogEntry } from './types';
+import type { IncidentState, Region, LogEntry, PatchVersion, SecurityChecklistItem, RegionWorkflow } from './types';
 
 export const REGIONS: Region[] = [
   { name: 'us-east', servers: 234, status: 'healthy', patchStatus: 'pending' },
@@ -17,10 +17,89 @@ export const CVE_DETAILS = {
   patchedKernel: '6.5.0-9',
 };
 
+export const PATCH_VERSIONS: PatchVersion[] = [
+  {
+    version: '6.5.0-9-hotfix',
+    description: 'Critical security patch for CVE-2024-8765 with emergency fixes',
+    kernelRange: '5.15.x - 6.5.x',
+  },
+  {
+    version: '6.5.0-9-security',
+    description: 'Enhanced security hardening patch for CVE-2024-8765',
+    kernelRange: '5.15.x - 6.5.x',
+  },
+  {
+    version: '6.5.0-10',
+    description: 'Latest stable kernel with comprehensive security fixes',
+    kernelRange: '5.15.x - 6.5.x',
+  },
+  {
+    version: '6.6.0-1',
+    description: 'Next-gen kernel with experimental security features',
+    kernelRange: '6.1.x - 6.6.x',
+  },
+];
+
+// Security checklist items scoped to simulation capabilities
+export const SECURITY_CHECKLIST_TEMPLATES: Omit<SecurityChecklistItem, 'verified'>[] = [
+  {
+    id: 'unauthorized_syscalls',
+    description: 'Check kernel logs for unauthorized system calls',
+    finding: 'Noticed some unusual system call patterns from the edge proxy service. After analysis, these appear to be legitimate high-volume requests during peak traffic.',
+  },
+  {
+    id: 'anomalous_network',
+    description: 'Verify no anomalous network connections in edge logs',
+    finding: 'Detected several connections to unknown IPs on port 443. Investigation shows these are CDN edge nodes performing health checks - normal behavior.',
+  },
+  {
+    id: 'patch_integrity',
+    description: 'Confirm patch checksum integrity in system logs',
+    finding: 'Checksum verification shows minor hash mismatches on 2 files. Cross-referenced with official repository - these are expected timestamp variations.',
+  },
+  {
+    id: 'auth_failures',
+    description: 'Review authentication logs for failed access attempts',
+    finding: 'Found 47 failed SSH attempts from internal IP range. These are from our automated deployment scripts retrying during the kernel patch window.',
+  },
+  {
+    id: 'process_spawning',
+    description: 'Check for unexpected process spawning in kernel logs',
+    finding: 'Observed several short-lived processes with high CPU usage. These are the kernel\'s normal cleanup routines following the patch installation.',
+  },
+];
+
+export function getRandomPatchVersion(): string {
+  const index = Math.floor(Math.random() * PATCH_VERSIONS.length);
+  return PATCH_VERSIONS[index].version;
+}
+
+export function generateSecurityChecklist(): SecurityChecklistItem[] {
+  // Randomly select 3-4 items from templates
+  const shuffled = [...SECURITY_CHECKLIST_TEMPLATES].sort(() => Math.random() - 0.5);
+  const count = 3 + Math.floor(Math.random() * 2); // 3 or 4 items
+  return shuffled.slice(0, count).map(item => ({
+    ...item,
+    verified: false,
+  }));
+}
+
 export function createInitialState(): Omit<IncidentState, 'simTime' | 'realStartTime'> {
   const patchStatus: Record<string, 'pending' | 'in_progress' | 'complete' | 'failed'> = {};
+  const regionWorkflows: Record<string, RegionWorkflow> = {};
+
   REGIONS.forEach(r => {
     patchStatus[r.name] = 'pending';
+    regionWorkflows[r.name] = {
+      region: r.name,
+      state: 'idle',
+      patchProgress: 0,
+      requiredPatch: getRandomPatchVersion(),
+      investigationComplete: false,
+      securityItems: [],
+      securityVerified: false,
+      errorRate: 0.3,
+    };
   });
 
   return {
@@ -41,6 +120,10 @@ export function createInitialState(): Omit<IncidentState, 'simTime' | 'realStart
     exploitationDetected: false,
     hintsUsed: 0,
     resolved: false,
+    regionWorkflows,
+    aiPersona: 'sre',
+    securityPhaseActive: false,
+    sreConfirmed: false,
   };
 }
 
