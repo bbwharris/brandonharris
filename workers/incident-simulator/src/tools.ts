@@ -17,21 +17,17 @@ export class IncidentTools {
       s => s === 'in_progress'
     ).length;
     
-    let output = `\n╔═══════════════════════════════════════════════════════════╗\n`;
-    output += `║  INCIDENT STATUS - ${this.state.cveId}          ║\n`;
-    output += `╠═══════════════════════════════════════════════════════════╣\n`;
-    output += `║  Phase: ${this.state.phase.toUpperCase().padEnd(47)}║\n`;
-    output += `║  Severity: ${this.state.severity.padEnd(44)}║\n`;
-    output += `║  Simulated Time: ${new Date(this.state.simTime).toLocaleString().padEnd(36)}║\n`;
-    output += `╠═══════════════════════════════════════════════════════════╣\n`;
-    output += `║  Affected Servers: ${this.state.affectedServers.toString().padEnd(35)}║\n`;
-    output += `║  Patched: ${patchedCount}/${REGIONS.length} regions${''.padEnd(28)}║\n`;
-    output += `║  In Progress: ${inProgressCount} regions${''.padEnd(30)}║\n`;
-    output += `╠═══════════════════════════════════════════════════════════╣\n`;
-    output += `║  Current Error Rate: ${this.state.errorRate.toFixed(2)}%${''.padEnd(32)}║\n`;
-    output += `║  P99 Latency: ${this.state.latencyP99}ms${''.padEnd(36)}║\n`;
-    output += `║  Traffic: ${(this.state.trafficVolume / 1000000).toFixed(1)}M req/s${''.padEnd(34)}║\n`;
-    output += `╚═══════════════════════════════════════════════════════════╝\n`;
+    let output = `\nINCIDENT STATUS - ${this.state.cveId}\n`;
+    output += `${'='.repeat(31 + this.state.cveId.length)}\n\n`;
+    output += `Phase:            ${this.state.phase.toUpperCase()}\n`;
+    output += `Severity:         ${this.state.severity}\n`;
+    output += `Simulated Time:   ${new Date(this.state.simTime).toLocaleString()}\n`;
+    output += `Affected Servers: ${this.state.affectedServers}\n`;
+    output += `Patched:          ${patchedCount}/${REGIONS.length} regions\n`;
+    output += `In Progress:      ${inProgressCount} regions\n`;
+    output += `Error Rate:       ${this.state.errorRate.toFixed(2)}%\n`;
+    output += `P99 Latency:      ${this.state.latencyP99}ms\n`;
+    output += `Traffic:          ${(this.state.trafficVolume / 1000000).toFixed(1)}M req/s\n`;
     
     if (this.state.exploitationDetected) {
       output += `\n⚠️  WARNING: Exploitation attempts detected in logs`;

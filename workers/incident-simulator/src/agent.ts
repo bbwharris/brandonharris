@@ -409,13 +409,11 @@ The AI service requires authentication. To enable the AI assistant in local deve
   private getWelcomeMessage(): string {
     return `
 ╔══════════════════════════════════════════════════════════════╗
-║           🚨 CRITICAL INCIDENT RESPONSE SIMULATOR 🚨          ║
+            🚨 CRITICAL INCIDENT RESPONSE SIMULATOR 🚨         
 ╠══════════════════════════════════════════════════════════════╣
-║                                                              ║
-║  INCIDENT: ${this.state.cveId}                               ║
-║  SEVERITY: P0 - CRITICAL                                     ║
-║  TIME: ${new Date(this.state.simTime).toLocaleString()}      ║
-║                                                              ║
+   INCIDENT: ${this.state.cveId}
+   SEVERITY: P0 - CRITICAL
+   TIME: ${new Date(this.state.simTime).toLocaleString()}
 ╠══════════════════════════════════════════════════════════════╣
 ║  AFFECTED SYSTEMS:                                           ║
 ║    • 847 edge servers across 5 regions                       ║
@@ -432,7 +430,7 @@ The AI service requires authentication. To enable the AI assistant in local deve
 ║  Use 'query <question>' to ask the on-call engineer          ║
 ╚══════════════════════════════════════════════════════════════╝
 
-Good luck. The edge is depending on you.
+Good luck.
 `;
   }
   
@@ -454,16 +452,14 @@ RESPONSE ACTIONS
 
 ASSISTANCE
   hint                      Get contextual hint
-  query <question>          Ask the on-call engineer AI
   help                      Show this help message
-  reset                     Restart the simulation
+  Ask the on-call engineer questions
 
 EXAMPLES
   metrics edge
   logs kernel 60
   patch us-east
   alert sre "Patch initiated in us-east"
-  query "What's the CVSS score for this CVE?"
 `;
     
     return {
