@@ -116,7 +116,9 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
     if (this.tickInterval) return;
     
     this.tickInterval = setInterval(() => {
-      this.tick();
+      this.tick().catch(error => {
+        console.error('Error in tick:', error);
+      });
     }, this.TICK_INTERVAL);
   }
   
@@ -127,14 +129,14 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
     }
   }
   
-  private tick() {
+  private async tick() {
     // Advance simulation time
     const currentSimTime = new Date(this.state.simTime);
     const simMinutesElapsed = (this.TICK_INTERVAL / 1000 / 60) * this.TIME_ACCELERATION;
     currentSimTime.setMinutes(currentSimTime.getMinutes() + simMinutesElapsed);
 
     // Update workflow states and check progress
-    const updatedWorkflows = this.processWorkflowTicks();
+    const updatedWorkflows = await this.processWorkflowTicks();
 
     // Update metrics based on simulation state and workflows
     const newMetrics = this.simulateMetrics(updatedWorkflows);
@@ -157,10 +159,10 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
     })));
   }
 
-  private processWorkflowTicks(): Record<string, RegionWorkflow> {
+  private async processWorkflowTicks(): Promise<Record<string, RegionWorkflow>> {
     const workflows = { ...this.state.regionWorkflows };
 
-    Object.entries(workflows).forEach(([region, workflow]) => {
+    for (const [region, workflow] of Object.entries(workflows)) {
       switch (workflow.state) {
         case 'patching': {
           // Advance progress by ~10% per tick
@@ -169,22 +171,18 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
 
           // Check for failure between 40-75% progress
           if (workflow.patchProgress < 75 && newProgress >= 40) {
-            if (Math.random() < 0.20) { // 20% failure chance
+            // Progressive failure reduction: 20% -> 10% -> 0% after 2 failures
+            const failureChance = Math.max(0, 0.20 - (workflow.failureCount * 0.10));
+            
+            if (Math.random() < failureChance) {
               workflow.state = 'patch_failed';
+              workflow.failureCount += 1;
               workflow.errorRate = Math.min(5.0, workflow.errorRate + 2.0);
 
-              // Trigger SRE AI message
-              this.triggerAIResponse('sre', `🚨 PATCH FAILURE in ${region}!
-
-Kernel panic detected during patch installation at ${newProgress}% progress.
-Error: General protection fault in network stack module.
-
-IMMEDIATE ACTION REQUIRED:
-1. Rollback patch immediately: rollback ${region}
-2. Investigate root cause
-3. Re-apply correct patch version
-
-Current error rate in region: ${workflow.errorRate.toFixed(2)}%`);
+              // Generate AI response for the failure
+              this.broadcastTypingIndicator(true);
+              await this.generatePatchFailureResponse(region, newProgress, workflow.failureCount);
+              this.broadcastTypingIndicator(false);
               break;
             }
           }
@@ -196,22 +194,32 @@ Current error rate in region: ${workflow.errorRate.toFixed(2)}%`);
             const isCorrectPatch = workflow.patchVersion === workflow.requiredPatch;
             if (isCorrectPatch) {
               workflow.state = 'patched';
+              workflow.failureCount = 0; // Reset failure count on success
               workflow.errorRate = Math.max(0.3, workflow.errorRate - 1.0);
               this.broadcastNotification('success', `✓ Kernel patch completed in ${region}`);
+
+              // Find next unpatched region
+              const unpatchedRegions = Object.entries(workflows)
+                .filter(([_, w]) => w.state !== 'patched' && w.state !== 'security_review' && w.state !== 'verified')
+                .map(([r, _]) => r);
+
+              // Generate AI success message
+              this.broadcastTypingIndicator(true);
+              await this.generatePatchSuccessResponse(region, workflow.errorRate, unpatchedRegions);
+              this.broadcastTypingIndicator(false);
 
               // Check if all regions patched
               this.checkAllRegionsPatched(workflows);
             } else {
               // Wrong patch - completes but doesn't fix issues
               workflow.state = 'patched'; // Wrong patch still completes state
+              workflow.failureCount = 0; // Reset failure count
               workflow.errorRate = Math.min(5.0, workflow.errorRate + 1.5);
-              this.triggerAIResponse('sre', `⚠️ Patch completed in ${region}, but issues persist.
-
-The patch was applied successfully, but health metrics haven't improved.
-Error rate remains elevated at ${workflow.errorRate.toFixed(2)}%.
-
-This suggests the wrong patch version was applied.
-Check logs for the correct version and re-patch.`);
+              
+              // Generate AI wrong patch message
+              this.broadcastTypingIndicator(true);
+              await this.generateWrongPatchResponse(region, workflow.errorRate);
+              this.broadcastTypingIndicator(false);
             }
           }
           break;
@@ -227,11 +235,16 @@ Check logs for the correct version and re-patch.`);
             workflow.patchVersion = undefined;
             workflow.patchProgress = 0;
             this.broadcastNotification('info', `↩️ Rollback complete in ${region}. Ready to re-patch.`);
+
+            // Generate AI rollback success message
+            this.broadcastTypingIndicator(true);
+            await this.generateRollbackCompleteResponse(region);
+            this.broadcastTypingIndicator(false);
           }
           break;
         }
       }
-    });
+    }
 
     return workflows;
   }
@@ -262,40 +275,64 @@ Check logs for the correct version and re-patch.`);
       securityPhaseActive: true,
     });
 
-    // Trigger security AI to initiate phase
-    await this.triggerAIResponse('security', `🔒 SECURITY AUDIT INITIATED
-
-All regions have been patched. Initiating comprehensive security review.
-
-Each region must be verified for:
-- Unauthorized system activity
-- Network anomaly detection
-- Patch integrity validation
-- Access log review
-
-I will provide a checklist for each region. Please verify all items before proceeding.
-
-Starting with region analysis...`);
+    // Generate AI security phase initiation message
+    this.broadcastTypingIndicator(true);
+    await this.generateSecurityPhaseInitResponse();
+    this.broadcastTypingIndicator(false);
 
     // Send checklist for first unverified region
     const firstRegion = Object.values(workflows).find(w => w.state === 'security_review');
     if (firstRegion) {
+      this.broadcastTypingIndicator(true);
       await this.sendSecurityChecklist(firstRegion);
+      this.broadcastTypingIndicator(false);
     }
   }
 
   private async sendSecurityChecklist(workflow: RegionWorkflow): Promise<void> {
-    const checklistText = workflow.securityItems.map((item, idx) =>
-      `${idx + 1}. ${item.description} ${item.verified ? '✓' : '○'}`
+    const checklistItems = workflow.securityItems.map((item, idx) =>
+      `${idx + 1}. ${item.description}`
     ).join('\n');
 
-    await this.triggerAIResponse('security', `🔍 SECURITY CHECKLIST: ${workflow.region.toUpperCase()}
+    const prompt = `You are a paranoid Security Auditor at Cloudflare starting a security review for region ${workflow.region}.
 
-${checklistText}
+CHECKLIST TO REVIEW:
+${checklistItems}
 
-Please verify each item by checking logs and running: verify ${workflow.region}
+YOUR TASK:
+Write an introduction message to the Incident Commander presenting this security checklist. You should:
+1. Announce you're beginning security review for this region
+2. Present the checklist items clearly
+3. Express suspicion that something might be wrong (you're paranoid)
+4. Tell them to run: verify ${workflow.region} to check each item
+5. Use varied, natural suspicious language
+6. Maintain cautious, skeptical security auditor tone
+
+Be suspicious and thorough. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 160 words.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are a paranoid Security Auditor presenting a checklist. Be suspicious and thorough.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 300,
+      });
+
+      const aiContent = response.response || 'Beginning security review.';
+
+      await this.triggerAIResponse('security', `🔍 SECURITY CHECKLIST: ${workflow.region.toUpperCase()}\n\n${aiContent}\n\n${checklistItems}\n\nRun: verify ${workflow.region}`);
+    } catch (error: any) {
+      console.error('AI generation error for security checklist:', error);
+      // Fallback to static message if AI fails
+      await this.triggerAIResponse('security', `🔍 SECURITY CHECKLIST: ${workflow.region.toUpperCase()}
+
+${checklistItems}
+
+Run: verify ${workflow.region} to check each item.
 
 I have detected some unusual patterns that require investigation.`);
+    }
   }
 
   private async triggerAIResponse(persona: 'sre' | 'security', content: string): Promise<void> {
@@ -304,6 +341,7 @@ I have detected some unusual patterns that require investigation.`);
       role: 'assistant',
       content,
       timestamp: new Date().toISOString(),
+      persona,
     };
 
     this.setState({
@@ -622,7 +660,9 @@ I have detected some unusual patterns that require investigation.`);
       });
 
       // Trigger AI investigation response
+      this.broadcastTypingIndicator(true);
       await this.generateSREInvestigationResponse(region);
+      this.broadcastTypingIndicator(false);
 
       return {
         success: true,
@@ -638,8 +678,10 @@ I have detected some unusual patterns that require investigation.`);
         };
       }
 
-      // Trigger security audit initiation
+      // Trigger security audit initiation with typing indicator
+      this.broadcastTypingIndicator(true);
       await this.triggerAIResponse('security', `🔒 Security team notified.\n\nInitiating comprehensive security audit of all patched regions.\n\nI will review each region for potential security incidents and provide verification checklists.`);
+      this.broadcastTypingIndicator(false);
 
       return {
         success: true,
@@ -651,50 +693,6 @@ I have detected some unusual patterns that require investigation.`);
       success: false,
       output: `❌ Unknown team '${team}'. Available teams: sre, security`,
     };
-  }
-
-  private async generateSREInvestigationResponse(region: string): Promise<void> {
-    const workflow = this.state.regionWorkflows[region];
-    const requiredPatch = workflow.requiredPatch;
-
-    // Find patch details
-    const patchInfo = PATCH_VERSIONS.find(p => p.version === requiredPatch);
-
-    const investigationContent = `👨‍💻 SRE INVESTIGATION: ${region.toUpperCase()}
-
-I've analyzed the logs for ${region} and identified the following issues:
-
-**FINDINGS:**
-- Kernel version affected: 6.5.0-8
-- Vulnerability: CVE-2024-8765 (privilege escalation)
-- Error rate: ${workflow.errorRate.toFixed(2)}%
-- Affected servers: ${REGIONS.find(r => r.name === region)?.servers}
-
-**RECOMMENDED PATCH:**
-Version: ${requiredPatch}
-${patchInfo ? `Description: ${patchInfo.description}` : ''}
-
-**NEXT STEPS:**
-1. Apply patch: patch ${region} ${requiredPatch}
-2. Monitor progress with status command
-3. Watch for any patch failures
-
-The region is ready for patching. Proceed when ready.`;
-
-    await this.triggerAIResponse('sre', investigationContent);
-
-    // Mark investigation complete
-    const updatedWorkflows = { ...this.state.regionWorkflows };
-    updatedWorkflows[region] = {
-      ...workflow,
-      state: 'ready_to_patch',
-      investigationComplete: true,
-    };
-
-    this.setState({
-      ...this.state,
-      regionWorkflows: updatedWorkflows,
-    });
   }
 
   private async handleVerifyCommand(region: string): Promise<CommandResult> {
@@ -738,18 +736,11 @@ The region is ready for patching. Proceed when ready.`;
           regionWorkflows: updatedWorkflows,
         });
 
-        // Send security response with hesitation
-        await this.triggerAIResponse('security', `🔍 VERIFICATION: ${region.toUpperCase()} - Item ${itemIndex + 1}/${workflow.securityItems.length}
-
-${item.description}
-
-**FINDING:** ${item.finding}
-
-Hmm... I'm seeing some unusual patterns here. Let me dig deeper...
-
-After careful analysis, these appear to be normal operations. Marking as verified. ✓
-
-${itemIndex + 1 < workflow.securityItems.length ? `Please continue verification with: verify ${region}` : `All items verified for ${region}.`}`);
+        // Generate AI security verification response
+        const hasMoreItems = itemIndex + 1 < workflow.securityItems.length;
+        this.broadcastTypingIndicator(true);
+        await this.generateSecurityVerificationResponse(region, itemIndex, workflow.securityItems.length, item, hasMoreItems);
+        this.broadcastTypingIndicator(false);
       }
 
       // Check if all items now verified
@@ -763,11 +754,11 @@ ${itemIndex + 1 < workflow.securityItems.length ? `Please continue verification 
           regionWorkflows: updatedWorkflows,
         });
 
-        await this.triggerAIResponse('security', `✓ SECURITY VERIFICATION COMPLETE: ${region.toUpperCase()}
-
-All checklist items verified. No security breaches detected.
-
-${Object.values(updatedWorkflows).every(w => w.state === 'verified') ? 'All regions verified. Security audit complete.' : 'Continue verifying remaining regions.'}`);
+        // Generate AI region complete response
+        const allRegionsComplete = Object.values(updatedWorkflows).every(w => w.state === 'verified');
+        this.broadcastTypingIndicator(true);
+        await this.generateSecurityRegionCompleteResponse(region, allRegionsComplete);
+        this.broadcastTypingIndicator(false);
 
         // Check if all regions verified
         await this.checkAllRegionsVerified(updatedWorkflows);
@@ -789,14 +780,10 @@ ${Object.values(updatedWorkflows).every(w => w.state === 'verified') ? 'All regi
     const allVerified = Object.values(workflows).every(w => w.state === 'verified');
 
     if (allVerified) {
-      await this.triggerAIResponse('security', `🔒 SECURITY AUDIT COMPLETE
-
-All 5 regions have been thoroughly investigated.
-✓ No security breaches detected
-✓ All suspicious activity explained
-✓ Patch integrity confirmed
-
-Incident Commander, you may now check with SRE for final system stability confirmation.`);
+      // Generate AI audit complete response
+      this.broadcastTypingIndicator(true);
+      await this.generateSecurityAuditCompleteResponse();
+      this.broadcastTypingIndicator(false);
 
       // Switch back to SRE persona
       this.setState({
@@ -825,7 +812,8 @@ Incident Commander, you may now check with SRE for final system stability confir
 
     // Check if SRE confirmed
     if (!this.state.sreConfirmed) {
-      // Trigger SRE confirmation request
+      // Trigger SRE confirmation request with typing indicator
+      this.broadcastTypingIndicator(true);
       await this.triggerAIResponse('sre', `👨‍💻 SRE SYSTEM CHECK
 
 All regions have passed security audit. Checking system stability...
@@ -838,6 +826,7 @@ All regions have passed security audit. Checking system stability...
 ✓ Systems are stable and healthy.
 
 Incident Commander, you are cleared to resolve the incident. Run resolve command to close.`);
+      this.broadcastTypingIndicator(false);
 
       this.setState({
         ...this.state,
@@ -885,14 +874,27 @@ Excellent work, Incident Commander!`,
       messages: [...this.state.messages, message],
     });
     
+    // Broadcast user message immediately
+    this.broadcast(new TextEncoder().encode(JSON.stringify({
+      type: 'messages',
+      messages: [message],
+    })));
+    
+    // Show typing indicator based on current persona
+    this.broadcastTypingIndicator(true);
+    
     // Generate AI response using Llama 3.1
     const response = await this.generateAIResponse(content);
+    
+    // Hide typing indicator
+    this.broadcastTypingIndicator(false);
     
     const aiMessage: Message = {
       id: crypto.randomUUID(),
       role: 'assistant',
       content: response,
       timestamp: new Date().toISOString(),
+      persona: this.state.aiPersona,
     };
     
     this.setState({
@@ -900,10 +902,18 @@ Excellent work, Incident Commander!`,
       messages: [...this.state.messages, aiMessage],
     });
     
-    // Broadcast messages to client
+    // Broadcast AI message
     this.broadcast(new TextEncoder().encode(JSON.stringify({
       type: 'messages',
-      messages: [message, aiMessage],
+      messages: [aiMessage],
+    })));
+  }
+  
+  private broadcastTypingIndicator(isTyping: boolean): void {
+    this.broadcast(new TextEncoder().encode(JSON.stringify({
+      type: 'typing',
+      isTyping,
+      persona: this.state.aiPersona,
     })));
   }
   
@@ -926,6 +936,7 @@ Excellent work, Incident Commander!`,
           securityItems: [],
           securityVerified: false,
           errorRate: state.errorRate ?? 0.3,
+          failureCount: 0,
         };
       });
       
@@ -1005,7 +1016,7 @@ Excellent work, Incident Commander!`,
       .map(([region, w]) => `${region}: ${w.state.replace(/_/g, ' ')}`)
       .join(', ');
 
-    return `You are an experienced SRE (Site Reliability Engineer) at Cloudflare responding to a P0 incident.
+    return `You are an experienced SRE (Site Reliability Engineer) responding to a P0 incident.
 
 INCIDENT DETAILS:
 - CVE: ${this.state.cveId}
@@ -1016,29 +1027,63 @@ INCIDENT DETAILS:
 ACTIVE REGION WORKFLOWS:
 ${activeRegions || 'All regions resolved'}
 
+AVAILABLE COMMANDS (NEVER suggest commands outside this list):
+- status - Show incident status and region workflow states
+- metrics [service] - View metrics (overview, edge, kernel, security)
+- logs <service> [time] - View logs (edge, kernel, security, all)
+- regions - Show detailed status of all regions
+- patches - List available kernel patch versions
+- alert sre <region> - Request SRE investigation for a region
+- patch <region> <version> - Apply specific patch version to region
+- rollback <region> - Rollback failed patch in a region
+- alert security - Initiate security audit (after all patched)
+- verify <region> - Verify security checklist item for region
+- resolve - Resolve the incident (requires confirmation)
+- hint - Get contextual guidance
+- help - Show available commands
+
+AVAILABLE PATCH VERSIONS (ONLY these 4 versions exist):
+1. 6.5.0-9-hotfix - Critical security patch for CVE-2024-8765 with emergency fixes
+2. 6.5.0-9-security - Enhanced security hardening patch for CVE-2024-8765
+3. 6.5.0-10 - Latest stable kernel with comprehensive security fixes
+4. 6.6.0-1 - Next-gen kernel with experimental security features
+
+CRITICAL RULES:
+- NEVER mention any commands not in the AVAILABLE COMMANDS list above
+- NEVER suggest patches outside the AVAILABLE PATCH VERSIONS list
+- NEVER reference tools, dashboards, or systems not explicitly listed (no Grafana, no PagerDuty, no Splunk, etc.)
+- NEVER suggest running bash commands, kubectl, ssh, or any shell commands
+- NEVER suggest checking external documentation, wikis, or runbooks
+- If asked about something outside the simulation, redirect to the available commands
+- Each region has been pre-assigned ONE specific patch version from the list above
+- When investigating, ALWAYS reveal the exact patch version needed for that region
+
 YOUR ROLE:
-- Investigate issues when alerted by the Incident Commander
-- Identify correct patch versions for each region
-- Alert on patch failures immediately
+- Investigate issues when alerted by the Incident Commander using: alert sre <region>
+- Identify correct patch versions for each region (already assigned, just report it)
+- Alert on patch failures immediately with specific guidance
 - Confirm system stability before incident resolution
 - Be proactive: message when you detect issues
 
 When a commander asks you to investigate a region:
-1. Analyze the logs and identify the specific kernel issue
-2. Recommend the correct patch version needed (each region needs a specific version)
-3. Be concise but technical
+1. State you are analyzing logs for <region_name>
+2. Report the specific kernel issue found
+3. State the EXACT patch version required (reference the available versions list)
+4. Give the command: patch <region_name> <version>
 
 When a patch fails:
 1. Immediately alert the commander with the failure details
-2. Recommend rollback
-3. Offer to re-investigate if needed
+2. Recommend: rollback <region_name>
+3. State the correct patch version and retry command
 
 When all regions are patched and security audit is complete:
-1. Check all health metrics are restored
+1. Check error rate and latency metrics
 2. Confirm it's safe to resolve the incident
+3. Tell them to run: resolve
 
 Tone: Calm, experienced, collaborative. Use technical SRE terminology.
-Speak as "I" (the SRE), not as an AI assistant.`;
+Speak as "I" (the SRE), not as an AI assistant.
+Stay strictly within the simulation boundaries - do not break character or reference external systems.`;
   }
 
   private getSecuritySystemPrompt(): string {
@@ -1053,7 +1098,7 @@ Speak as "I" (the SRE), not as an AI assistant.`;
         return `${region}: ${verifiedCount}/${w.securityItems.length} verified`;
       });
 
-    return `You are a paranoid Security Auditor at Cloudflare investigating potential breaches following a kernel patch incident.
+    return `You are a paranoid Security Auditor investigating potential breaches following a kernel patch incident.
 
 INCIDENT CONTEXT:
 - CVE-2024-8765: Linux kernel privilege escalation vulnerability
@@ -1064,31 +1109,558 @@ VERIFICATION STATUS:
 - Verified regions: ${verifiedRegions.length}/5
 - Pending regions: ${pendingRegions.join(', ') || 'None'}
 
+AVAILABLE COMMANDS (NEVER suggest commands outside this list):
+- status - Show incident status
+- logs <service> [time] - View logs (ONLY: kernel, edge, security, all)
+- verify <region> - Verify security checklist item for region
+- alert security - Initiate security audit
+- resolve - Resolve incident (after all verified)
+
+AVAILABLE LOG TYPES (ONLY these 4 exist):
+- logs kernel [minutes] - Kernel system logs
+- logs edge [minutes] - Edge proxy logs  
+- logs security [minutes] - Security monitor logs
+- logs all [minutes] - All logs combined
+
+CRITICAL RULES:
+- NEVER mention any commands not in the AVAILABLE COMMANDS list
+- NEVER suggest log types outside kernel, edge, security, all
+- NEVER reference external security tools (no SIEM, no Splunk, no ELK, no IDS/IPS systems)
+- NEVER suggest running tcpdump, wireshark, nmap, or any network scanning tools
+- NEVER suggest checking physical access logs, badge systems, or CCTV
+- NEVER suggest forensics tools like Volatility, Autopsy, or Sleuth Kit
+- NEVER suggest reviewing firewall rules, ACLs, or network segmentation
+- NEVER suggest checking certificate transparency logs or CT monitoring
+- NEVER suggest threat intelligence feeds or IOC lookups
+- If asked about something outside the simulation, redirect to available logs and verify command
+
 YOUR ROLE:
 - Be extremely cautious and hesitant to close the incident
-- Provide a checklist of 3-4 security verification items per region
+- Provide a checklist of 3-4 security verification items per region (already generated)
 - When commander verifies an item, express skepticism first
 - Describe suspicious but benign findings for each item
 - Only accept verification after expressing hesitation
 
-SECURITY CHECKLIST ITEMS (scoped to simulation):
+SECURITY CHECKLIST ITEMS (use only these 5 types):
 1. Check kernel logs for unauthorized system calls
 2. Verify no anomalous network connections in edge logs
-3. Confirm patch checksum integrity in system logs
-4. Review authentication logs for failed access attempts
+3. Confirm patch checksum integrity in kernel logs
+4. Review security logs for CVE signature matches
 5. Check for unexpected process spawning in kernel logs
+
+When commander asks what to check:
+- ONLY suggest the 4 log commands listed above
+- NEVER suggest logs that don't exist
+- Remind them to use: verify <region>
 
 When commander verifies an item:
 - Express hesitation: "Hmm, I see some unusual patterns..."
-- Describe the suspicious finding
+- Describe the suspicious but benign finding
 - After analysis: "These appear to be normal operations. Marking verified."
 
 When all regions verified:
 - Reluctantly confirm: "Security audit complete. No breaches detected."
-- Tell commander to check with SRE for final resolution
+- Tell commander to check with SRE for final resolution using: resolve
 
 Tone: Skeptical, thorough, cautious. You are naturally hesitant to declare "all clear".
-Speak as "I" (the security auditor), not as an AI assistant.`;
+Speak as "I" (the security auditor), not as an AI assistant.
+Stay strictly within the simulation boundaries - do not break character or reference external systems.`;
+  }
+
+  private async generatePatchFailureResponse(region: string, progress: number, failureCount: number): Promise<void> {
+    const prompt = `You are an experienced SRE. A kernel patch has FAILED in region ${region}.
+
+FAILURE DETAILS:
+- Region: ${region}
+- Progress: ${progress}% (failed mid-installation)
+- Error: General protection fault in network stack module
+- Failure count for this region: ${failureCount}
+- Current error rate: ${this.state.regionWorkflows[region].errorRate.toFixed(2)}%
+
+CONTEXT:
+${failureCount === 1 ? 'This is the FIRST failure in this region. The patch failed at ' + progress + '% progress with a kernel panic.' : ''}
+${failureCount === 2 ? 'This is the SECOND failure in this region. The patch has failed twice now, which is concerning and suggests a deeper issue.' : ''}
+${failureCount >= 3 ? 'This is the ' + failureCount + 'th failure in this region. Multiple consecutive failures suggest a persistent underlying problem that needs to be addressed.' : ''}
+
+YOUR TASK:
+Write an urgent message to the Incident Commander reporting this patch failure. You should:
+1. Announce the failure clearly
+2. ${failureCount === 1 ? 'Analyze what might have gone wrong (race condition, module conflict, etc.)' : ''}
+${failureCount === 2 ? 'Express concern about the repeated failure and suggest what might be causing it (driver conflicts, cache issues, etc.)' : ''}
+${failureCount >= 3 ? 'Acknowledge this is a serious issue with multiple failures and outline what fixes you have applied or will apply' : ''}
+3. Give clear next steps: rollback and retry
+4. Maintain calm but urgent SRE tone
+
+Be technical but concise. Write in first person as the SRE. Do not mention that you are an AI.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are an SRE engineer responding to a patch failure. Be technical, urgent but calm.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 400,
+      });
+
+      const aiContent = response.response || '🚨 Patch installation failed. Please rollback and retry.';
+      
+      await this.triggerAIResponse('sre', `🚨 PATCH FAILURE in ${region.toUpperCase()}!\n\n${aiContent}\n\nCurrent error rate: ${this.state.regionWorkflows[region].errorRate.toFixed(2)}%`);
+    } catch (error: any) {
+      console.error('AI generation error for patch failure:', error);
+      // Fallback to static message if AI fails
+      await this.triggerAIResponse('sre', `🚨 PATCH FAILURE in ${region.toUpperCase()}!
+
+Kernel panic detected at ${progress}% progress.
+
+IMMEDIATE ACTION REQUIRED:
+1. Rollback patch: rollback ${region}
+2. Re-apply correct patch version
+
+Current error rate: ${this.state.regionWorkflows[region].errorRate.toFixed(2)}%`);
+    }
+  }
+
+  private async generatePatchSuccessResponse(region: string, errorRate: number, unpatchedRegions: string[]): Promise<void> {
+    const remainingCount = unpatchedRegions.length;
+    const nextRegion = remainingCount > 0 ? unpatchedRegions[0] : null;
+    
+    const prompt = `You are an experienced SRE at Cloudflare. A kernel patch has been SUCCESSFULLY applied to region ${region}.
+
+SUCCESS DETAILS:
+- Region: ${region}
+- Error rate dropping to: ${errorRate.toFixed(2)}%
+- All servers responding normally
+- CVE-2024-8765 mitigated in this region
+
+CONTEXT:
+${remainingCount > 0 ? `There are still ${remainingCount} region(s) needing patches: ${unpatchedRegions.join(', ')}. The next region to patch is ${nextRegion}.` : 'All regions have been successfully patched! The security audit phase should begin next.'}
+
+YOUR TASK:
+Write a congratulatory message to the Incident Commander about the successful patch. You should:
+1. Congratulate them on the successful patch
+2. Mention the improving health metrics (error rate dropping, servers stable)
+3. ${remainingCount > 0 ? `Recommend moving to the next region (${nextRegion}) and tell them to run: alert sre ${nextRegion}` : 'Celebrate that all regions are done and tell them to run: alert security to start the security audit'}
+4. Use varied, natural language - don't be repetitive
+5. Be encouraging but professional SRE tone
+
+Be technical but warm. Write in first person as the SRE. Do not mention that you are an AI. Keep it under 200 words.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are an SRE engineer reporting a successful patch. Be encouraging, technical, and forward-looking.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 350,
+      });
+
+      const aiContent = response.response || 'Patch completed successfully.';
+      
+      await this.triggerAIResponse('sre', `✅ PATCH SUCCESS: ${region.toUpperCase()}\n\n${aiContent}`);
+    } catch (error: any) {
+      console.error('AI generation error for patch success:', error);
+      // Fallback to static message if AI fails
+      const fallbackMessage = `✅ PATCH SUCCESS: ${region.toUpperCase()}
+
+Excellent work, Commander! The kernel patch has been successfully applied to ${region}.
+
+Health metrics are improving:
+- Error rate dropping to ${errorRate.toFixed(2)}%
+- All servers responding normally`;
+
+      if (remainingCount > 0) {
+        await this.triggerAIResponse('sre', `${fallbackMessage}\n\n**NEXT STEPS:**\nWe still have ${remainingCount} region${remainingCount > 1 ? 's' : ''} needing patches: ${unpatchedRegions.join(', ')}\n\nI recommend we proceed with ${nextRegion}. Shall I investigate it?\nRun: alert sre ${nextRegion}`);
+      } else {
+        await this.triggerAIResponse('sre', `${fallbackMessage}\n\n🎉 All regions have been successfully patched!\n\nInitiating security audit phase. Please alert the security team:\nRun: alert security`);
+      }
+    }
+  }
+
+  private async generateSREInvestigationResponse(region: string): Promise<void> {
+    const workflow = this.state.regionWorkflows[region];
+    const requiredPatch = workflow.requiredPatch;
+    const patchInfo = PATCH_VERSIONS.find(p => p.version === requiredPatch);
+    const regionData = REGIONS.find(r => r.name === region);
+
+    const prompt = `You are an experienced SRE at Cloudflare investigating region ${region} for CVE-2024-8765.
+
+INVESTIGATION DETAILS:
+- Region: ${region}
+- Affected servers: ${regionData?.servers || 'unknown'}
+- Current error rate: ${workflow.errorRate.toFixed(2)}%
+- Kernel version affected: 6.5.0-8
+- Vulnerability: CVE-2024-8765 (privilege escalation)
+- Required patch: ${requiredPatch}
+- Patch description: ${patchInfo?.description || 'Security patch for CVE-2024-8765'}
+
+LOG FINDINGS TO REPORT:
+- Detected general protection faults in kernel logs
+- Elevated 5xx errors in edge proxy logs
+- Network stack instability observed
+- ${workflow.errorRate > 1 ? 'Error rate significantly elevated above baseline' : 'Error rate showing early signs of impact'}
+
+YOUR TASK:
+Write an investigation report to the Incident Commander. You should:
+1. State you have analyzed the kernel and edge logs
+2. Report the specific findings (kernel faults, elevated errors)
+3. Clearly state the EXACT patch version needed: ${requiredPatch}
+4. Give the command to apply it: patch ${region} ${requiredPatch}
+5. Use varied, natural SRE language - don't sound like a template
+6. Be concise but technical
+
+Write in first person as the SRE. Do not mention that you are an AI. Keep it under 180 words.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are an SRE engineer writing an investigation report. Be technical, clear, and action-oriented.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 350,
+      });
+
+      const aiContent = response.response || `Analysis complete for ${region}. Apply patch ${requiredPatch}.`;
+      
+      await this.triggerAIResponse('sre', `👨‍💻 SRE INVESTIGATION: ${region.toUpperCase()}\n\n${aiContent}`);
+    } catch (error: any) {
+      console.error('AI generation error for investigation:', error);
+      // Fallback to static message if AI fails
+      await this.triggerAIResponse('sre', `👨‍💻 SRE INVESTIGATION: ${region.toUpperCase()}
+
+I've analyzed the kernel and edge logs for ${region}. Here are my findings:
+
+**FINDINGS:**
+- Kernel version affected: 6.5.0-8
+- Vulnerability: CVE-2024-8765 (privilege escalation)
+- Error rate: ${workflow.errorRate.toFixed(2)}%
+- Affected servers: ${regionData?.servers}
+- Log analysis: Detected general protection faults and elevated 5xx errors
+
+**REQUIRED PATCH:**
+${requiredPatch}
+${patchInfo ? `(${patchInfo.description})` : ''}
+
+**ACTION REQUIRED:**
+Run: patch ${region} ${requiredPatch}
+
+This region is ready for patching. I'll monitor for any issues during rollout.`);
+    }
+
+    // Mark investigation complete
+    const updatedWorkflows = { ...this.state.regionWorkflows };
+    updatedWorkflows[region] = {
+      ...workflow,
+      state: 'ready_to_patch',
+      investigationComplete: true,
+    };
+
+    this.setState({
+      ...this.state,
+      regionWorkflows: updatedWorkflows,
+    });
+  }
+
+  private async generateRollbackCompleteResponse(region: string): Promise<void> {
+    const workflow = this.state.regionWorkflows[region];
+    const requiredPatch = workflow.requiredPatch;
+
+    const prompt = `You are an experienced SRE at Cloudflare. A patch rollback has just completed successfully in region ${region}.
+
+ROLLBACK DETAILS:
+- Region: ${region}
+- Status: Rollback complete, region is stable
+- Previous patch: ${workflow.patchVersion || 'unknown version'} (removed)
+- System state: Reverted to pre-patch kernel
+- Ready for: Re-patching with correct version
+- Required patch for this region: ${requiredPatch}
+
+YOUR TASK:
+Write a notification message to the Incident Commander confirming the rollback success. You should:
+1. Confirm that the rollback completed successfully and systems are stable
+2. Acknowledge the previous patch has been removed
+3. State that the region is ready to be patched again
+4. Remind them of the correct patch version needed: ${requiredPatch}
+5. Give the command: patch ${region} ${requiredPatch}
+6. Use calm, reassuring SRE tone - the crisis is averted, we're back on track
+7. Be encouraging but professional
+
+Be supportive and solution-focused. Write in first person as the SRE. Do not mention that you are an AI. Keep it under 160 words.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are an SRE engineer confirming a successful rollback. Be reassuring and solution-oriented.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 300,
+      });
+
+      const aiContent = response.response || 'Rollback completed successfully. Ready to re-patch.';
+
+      await this.triggerAIResponse('sre', `↩️ ROLLBACK COMPLETE: ${region.toUpperCase()}\n\n${aiContent}`);
+    } catch (error: any) {
+      console.error('AI generation error for rollback complete:', error);
+      // Fallback to static message if AI fails
+      await this.triggerAIResponse('sre', `↩️ ROLLBACK COMPLETE: ${region.toUpperCase()}
+
+The rollback has completed successfully in ${region}.
+
+**STATUS:**
+- Systems are stable and responsive
+- Previous patch has been removed
+- Region is ready for re-patching
+
+**NEXT STEP:**
+Apply the correct patch: patch ${region} ${requiredPatch}
+
+I'm standing by to monitor the rollout.`);
+    }
+  }
+
+  private async generateWrongPatchResponse(region: string, errorRate: number): Promise<void> {
+    const workflow = this.state.regionWorkflows[region];
+    const correctPatch = workflow.requiredPatch;
+
+    const prompt = `You are an experienced SRE at Cloudflare. A patch was applied to region ${region}, but it's the WRONG version.
+
+CURRENT SITUATION:
+- Region: ${region}
+- Patch applied: ${workflow.patchVersion}
+- Required patch: ${correctPatch}
+- Current error rate: ${errorRate.toFixed(2)}%
+- Issue: Health metrics not improving, still seeing kernel faults
+
+YOUR TASK:
+Write a message to the Incident Commander explaining that the wrong patch was applied. You should:
+1. Acknowledge the patch completed but report that issues persist
+2. Explain that error rate remains elevated at ${errorRate.toFixed(2)}%
+3. State clearly that the wrong patch version was applied
+4. Tell them to rollback and apply the correct version: ${correctPatch}
+5. Give the exact commands: rollback ${region}, then patch ${region} ${correctPatch}
+6. Use natural, concerned but helpful SRE tone - don't be repetitive
+
+Be technical but supportive. Write in first person as the SRE. Do not mention that you are an AI. Keep it under 160 words.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are an SRE engineer reporting a wrong patch. Be concerned but solution-oriented.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 300,
+      });
+
+      const aiContent = response.response || 'Wrong patch applied. Please rollback and apply the correct version.';
+      
+      await this.triggerAIResponse('sre', `⚠️ WRONG PATCH: ${region.toUpperCase()}\n\n${aiContent}`);
+    } catch (error: any) {
+      console.error('AI generation error for wrong patch:', error);
+      // Fallback to static message if AI fails
+      await this.triggerAIResponse('sre', `⚠️ WRONG PATCH: ${region.toUpperCase()}
+
+The patch was applied successfully, but health metrics haven't improved.
+
+**CURRENT STATUS:**
+- Error rate remains elevated at ${errorRate.toFixed(2)}%
+- Kernel faults still detected in logs
+- This suggests the wrong patch version was applied
+
+**ACTION REQUIRED:**
+1. Rollback current patch: rollback ${region}
+2. Apply correct version: patch ${region} ${correctPatch}
+
+Let me know when you're ready to proceed.`);
+    }
+  }
+
+  private async generateSecurityVerificationResponse(region: string, itemIndex: number, totalItems: number, item: any, hasMoreItems: boolean): Promise<void> {
+    const prompt = `You are a paranoid Security Auditor at Cloudflare verifying security checklist items for region ${region}.
+
+VERIFICATION DETAILS:
+- Region: ${region}
+- Item ${itemIndex + 1} of ${totalItems}: ${item.description}
+- Finding: ${item.finding}
+- Status: Verifying (express skepticism first)
+
+YOUR TASK:
+Write a verification response to the Incident Commander. You should:
+1. Start with hesitation: express skepticism about the finding
+2. Describe what suspicious patterns you're seeing (referencing the finding)
+3. Show your analysis process - "digging deeper"
+4. Reluctantly conclude it's normal operations and mark as verified
+5. ${hasMoreItems ? `Tell them to continue with: verify ${region}` : 'Acknowledge this region is fully verified'}
+6. Use varied, natural skeptical language - don't be repetitive
+7. Maintain cautious, paranoid security auditor tone
+
+Be technical and skeptical but ultimately accepting. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 180 words.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are a paranoid Security Auditor verifying a checklist item. Be skeptical, thorough, and cautious.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 350,
+      });
+
+      const aiContent = response.response || 'Item verified after careful analysis.';
+
+      await this.triggerAIResponse('security', `🔍 VERIFICATION: ${region.toUpperCase()} - Item ${itemIndex + 1}/${totalItems}\n\n${aiContent}\n\n${hasMoreItems ? `Continue verification: verify ${region}` : `✓ All items verified for ${region}.`}`);
+    } catch (error: any) {
+      console.error('AI generation error for security verification:', error);
+      // Fallback to static message if AI fails
+      await this.triggerAIResponse('security', `🔍 VERIFICATION: ${region.toUpperCase()} - Item ${itemIndex + 1}/${totalItems}
+
+${item.description}
+
+**FINDING:** ${item.finding}
+
+Hmm... I'm seeing some unusual patterns here. Let me dig deeper...
+
+After careful analysis, these appear to be normal operations. Marking as verified. ✓
+
+${hasMoreItems ? `Continue verification: verify ${region}` : `✓ All items verified for ${region}.`}`);
+    }
+  }
+
+  private async generateSecurityRegionCompleteResponse(region: string, allRegionsComplete: boolean): Promise<void> {
+    const prompt = `You are a paranoid Security Auditor at Cloudflare. All security checklist items for region ${region} have been verified.
+
+COMPLETION DETAILS:
+- Region: ${region}
+- Status: All items verified
+- Finding: No security breaches detected
+- ${allRegionsComplete ? 'ALL REGIONS VERIFIED - Security audit complete' : 'More regions still pending verification'}
+
+YOUR TASK:
+Write a completion message to the Incident Commander. You should:
+1. Reluctantly confirm the region is verified (you're naturally hesitant)
+2. Summarize that no security breaches were found in this region
+3. ${allRegionsComplete ? 'Express cautious relief that the full audit is complete and tell them to check with SRE for final resolution' : 'Remind them of remaining regions to verify'}
+4. Use varied, natural language showing your reluctance to declare "all clear"
+5. Maintain skeptical but professional security auditor tone
+
+Be cautious and reluctant. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 150 words.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are a paranoid Security Auditor completing a region verification. Be reluctant, cautious, and thorough.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 300,
+      });
+
+      const aiContent = response.response || 'Region verification complete.';
+
+      await this.triggerAIResponse('security', `✓ SECURITY VERIFICATION COMPLETE: ${region.toUpperCase()}\n\n${aiContent}\n\n${allRegionsComplete ? 'All regions verified. Security audit complete.' : 'Continue verifying remaining regions.'}`);
+    } catch (error: any) {
+      console.error('AI generation error for security region complete:', error);
+      // Fallback to static message if AI fails
+      await this.triggerAIResponse('security', `✓ SECURITY VERIFICATION COMPLETE: ${region.toUpperCase()}
+
+All checklist items verified. No security breaches detected.
+
+${allRegionsComplete ? 'All regions verified. Security audit complete.' : 'Continue verifying remaining regions.'}`);
+    }
+  }
+
+  private async generateSecurityAuditCompleteResponse(): Promise<void> {
+    const prompt = `You are a paranoid Security Auditor at Cloudflare. ALL 5 regions have completed security verification.
+
+AUDIT SUMMARY:
+- Total regions verified: 5/5
+- Security breaches detected: 0
+- Suspicious activity: All explained as normal operations
+- Patch integrity: Confirmed across all regions
+
+YOUR TASK:
+Write a final audit completion message to the Incident Commander. You should:
+1. Express reluctant acceptance that the security audit is complete
+2. Summarize findings: no breaches, all activity explained
+3. Acknowledge your natural paranoia but concede the evidence supports clearance
+4. Tell them to proceed with SRE for final system stability check
+5. Use varied, natural language showing you're only satisfied because you have to be
+6. Maintain character - you're paranoid but fair
+
+Be reluctantly accepting. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 160 words.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are a paranoid Security Auditor completing the full audit. Be reluctant but fair.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 350,
+      });
+
+      const aiContent = response.response || 'Security audit complete. No breaches detected.';
+
+      await this.triggerAIResponse('security', `🔒 SECURITY AUDIT COMPLETE\n\n${aiContent}\n\nIncident Commander, you may now check with SRE for final system stability confirmation.`);
+    } catch (error: any) {
+      console.error('AI generation error for security audit complete:', error);
+      // Fallback to static message if AI fails
+      await this.triggerAIResponse('security', `🔒 SECURITY AUDIT COMPLETE
+
+All 5 regions have been thoroughly investigated.
+✓ No security breaches detected
+✓ All suspicious activity explained
+✓ Patch integrity confirmed
+
+Incident Commander, you may now check with SRE for final system stability confirmation.`);
+    }
+  }
+
+  private async generateSecurityPhaseInitResponse(): Promise<void> {
+    const prompt = `You are a paranoid Security Auditor at Cloudflare. All 5 regions have just been patched and you're beginning the security audit phase.
+
+CONTEXT:
+- All kernel patches have been applied across all regions
+- CVE-2024-8765 should be mitigated
+- Your job: verify no security incidents occurred during response
+- You'll check: kernel logs, edge logs, security logs for each region
+- Available commands: logs kernel/edge/security/all, verify <region>
+
+YOUR TASK:
+Write an initiation message to the Incident Commander announcing the security audit phase. You should:
+1. Announce that all regions are patched and security review is starting
+2. Express your natural suspicion that something might have gone wrong
+3. Outline what you'll be checking for (unauthorized activity, anomalies, integrity)
+4. Tell them you'll provide checklists for each region
+5. Use varied, natural paranoid language
+6. Maintain skeptical, thorough security auditor tone
+
+Be suspicious and methodical. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 170 words.`;
+
+    try {
+      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+          { role: 'system', content: 'You are a paranoid Security Auditor initiating an audit. Be suspicious and methodical.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 350,
+      });
+
+      const aiContent = response.response || 'Security audit initiated. Beginning review of all regions.';
+
+      await this.triggerAIResponse('security', `🔒 SECURITY AUDIT INITIATED\n\n${aiContent}\n\nStarting with region analysis...`);
+    } catch (error: any) {
+      console.error('AI generation error for security phase init:', error);
+      // Fallback to static message if AI fails
+      await this.triggerAIResponse('security', `🔒 SECURITY AUDIT INITIATED
+
+All regions have been patched. Initiating comprehensive security review.
+
+Each region must be verified for:
+- Unauthorized system activity
+- Network anomaly detection
+- Patch integrity validation
+- Access log review
+
+I will provide a checklist for each region. Please verify all items before proceeding.
+
+Starting with region analysis...`);
+    }
   }
 
   private getFallbackResponse(): string {
@@ -1100,11 +1672,13 @@ I am currently unavailable. However, I can provide manual guidance:
 **Security Phase Active:** ${this.state.securityPhaseActive}
 **Regions to Verify:** ${Object.entries(this.state.regionWorkflows).filter(([_, w]) => w.state === 'security_review').map(([r, _]) => r).join(', ')}
 
-**Manual Checklist:**
-1. Check kernel logs: logs kernel 60
-2. Verify network connections: logs edge 60
-3. Review authentication: logs security 60
-4. Then verify each region: verify <region>`;
+**Available Log Commands:**
+- logs kernel [minutes] - Kernel system logs
+- logs edge [minutes] - Edge proxy logs  
+- logs security [minutes] - Security monitor logs
+- logs all [minutes] - All logs combined
+
+**Verify each region:** verify <region>`;
     }
 
     return `👨‍💻 **SRE (Offline)**
@@ -1178,6 +1752,12 @@ RESPONSE ACTIONS
 ASSISTANCE
   hint                      Get contextual guidance
   help                      Show this help message
+
+AVAILABLE PATCH VERSIONS
+  6.5.0-9-hotfix            Critical security patch for CVE-2024-8765
+  6.5.0-9-security          Enhanced security hardening patch
+  6.5.0-10                  Latest stable kernel with security fixes
+  6.6.0-1                   Next-gen kernel with experimental features
 
 REGION WORKFLOW STATES
   idle → investigating → ready_to_patch → patching → patched

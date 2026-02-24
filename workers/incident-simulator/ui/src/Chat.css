@@ -158,3 +158,54 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Typing Indicator Styles */
+.typing-indicator {
+  opacity: 0.8;
+}
+
+.typing-indicator .message-content {
+  background-color: #21262d;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.typing-animation {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.typing-animation span {
+  width: 6px;
+  height: 6px;
+  background-color: currentColor;
+  border-radius: 50%;
+  animation: typingBounce 1.4s infinite ease-in-out both;
+  opacity: 0.6;
+}
+
+.typing-animation span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-animation span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.typing-animation span:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes typingBounce {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

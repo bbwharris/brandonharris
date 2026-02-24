@@ -58,9 +58,9 @@ export const SECURITY_CHECKLIST_TEMPLATES: Omit<SecurityChecklistItem, 'verified
     finding: 'Checksum verification shows minor hash mismatches on 2 files. Cross-referenced with official repository - these are expected timestamp variations.',
   },
   {
-    id: 'auth_failures',
-    description: 'Review authentication logs for failed access attempts',
-    finding: 'Found 47 failed SSH attempts from internal IP range. These are from our automated deployment scripts retrying during the kernel patch window.',
+    id: 'security_monitor',
+    description: 'Review security logs for CVE signature matches',
+    finding: 'Security monitor flagged 12 potential CVE-2024-8765 signature matches. Detailed analysis confirms these are false positives from legitimate kernel operations during patching.',
   },
   {
     id: 'process_spawning',
@@ -99,6 +99,7 @@ export function createInitialState(): Omit<IncidentState, 'simTime' | 'realStart
       securityItems: [],
       securityVerified: false,
       errorRate: 0.3,
+      failureCount: 0,
     };
   });
 

@@ -18,6 +18,7 @@ interface RegionWorkflow {
   securityItems: SecurityChecklistItem[];
   securityVerified: boolean;
   errorRate: number;
+  failureCount: number;
 }
 
 interface DashboardProps {
@@ -208,6 +209,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state }) => {
               const workflowState = workflow.state || 'idle';
               const patchProgress = workflow.patchProgress ?? 0;
               const securityItems = workflow.securityItems || [];
+              const failureCount = workflow.failureCount ?? 0;
               
               return (
                 <div key={region} className="patch-item" style={{ marginBottom: '8px' }}>
@@ -259,6 +261,20 @@ const Dashboard: React.FC<DashboardProps> = ({ state }) => {
                   {workflowState === 'security_review' && securityItems.length > 0 && (
                     <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '4px' }}>
                       Security: {securityItems.filter(i => i.verified).length}/{securityItems.length} verified
+                    </div>
+                  )}
+
+                  {/* Failure count indicator */}
+                  {(workflowState === 'patch_failed' || workflowState === 'ready_to_patch') && failureCount > 0 && (
+                    <div style={{ 
+                      fontSize: '0.75rem', 
+                      color: failureCount >= 2 ? '#3fb950' : '#f0883e', 
+                      marginTop: '4px',
+                      fontWeight: 'bold'
+                    }}>
+                      {failureCount >= 2 
+                        ? '✓ SRE has applied fixes (review chat message)' 
+                        : `⚠️ Previous failure - see sre analysis`}
                     </div>
                   )}
                 </div>

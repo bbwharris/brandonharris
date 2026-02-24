@@ -29,6 +29,7 @@ export interface RegionWorkflow {
   securityVerified: boolean;
   patchStartTime?: number;
   errorRate: number;
+  failureCount: number; // Track consecutive failures
 }
 
 export interface PatchVersion {
@@ -84,6 +85,7 @@ export interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: string;
+  persona?: 'sre' | 'security';
 }
 
 export interface Metrics {

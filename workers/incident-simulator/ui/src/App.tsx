@@ -21,6 +21,7 @@ interface RegionWorkflow {
   securityItems: SecurityChecklistItem[];
   securityVerified: boolean;
   errorRate: number;
+  failureCount: number;
 }
 
 interface IncidentState {
@@ -51,6 +52,7 @@ const App: React.FC = () => {
   const [connected, setConnected] = useState(false);
   const [state, setState] = useState<IncidentState | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
+  const [typingState, setTypingState] = useState<{ isTyping: boolean; persona: string | null }>({ isTyping: false, persona: null });
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -100,6 +102,9 @@ const App: React.FC = () => {
             break;
           case 'messages':
             setMessages(prev => [...prev, ...data.messages]);
+            break;
+          case 'typing':
+            setTypingState({ isTyping: data.isTyping, persona: data.persona });
             break;
           case 'response':
             if (data.result && data.result.output) {
@@ -232,6 +237,7 @@ const App: React.FC = () => {
             messages={messages}
             onSendMessage={sendMessage}
             connected={connected}
+            typingState={typingState}
           />
         </aside>
       </div>

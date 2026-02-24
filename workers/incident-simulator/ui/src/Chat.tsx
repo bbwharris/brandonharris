@@ -13,6 +13,7 @@ interface ChatProps {
   messages: Message[];
   onSendMessage: (content: string) => void;
   connected: boolean;
+  typingState?: { isTyping: boolean; persona: string | null };
 }
 
 const detectPersona = (content: string): 'sre' | 'security' | null => {
@@ -25,15 +26,15 @@ const detectPersona = (content: string): 'sre' | 'security' | null => {
   return null;
 };
 
-const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected }) => {
+const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected, typingState }) => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages or typing state changes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, typingState]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +55,8 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected }) => {
     if (message.role === 'user') return { icon: '👤', label: 'You', color: '#58a6ff' };
     if (message.role === 'system') return { icon: '🤖', label: 'System', color: '#8b949e' };
 
-    const persona = detectPersona(message.content);
+    // Use explicit persona field if available, otherwise fall back to content detection
+    const persona = message.persona || detectPersona(message.content);
     if (persona === 'security') {
       return { icon: '🔒', label: 'Security', color: '#8957e5' };
     }
@@ -64,7 +66,7 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected }) => {
   return (
     <div className="chat">
       <div className="chat-header">
-        <span className="chat-title">💬 AI Agents</span>
+        <span className="chat-title">💬 Team Chat</span>
         <span className="chat-status">
           {connected ? 'Online' : 'Offline'}
         </span>
@@ -75,7 +77,7 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected }) => {
           <div className="chat-empty">
             <p>No messages yet.</p>
             <p className="chat-hint">
-              AI agents will message you during the incident. You can also ask questions.
+              Team members will message you during the incident. You can also ask questions.
             </p>
           </div>
         )}
@@ -105,6 +107,34 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected }) => {
             </div>
           );
         })}
+        
+        {/* Typing Indicator */}
+        {typingState?.isTyping && (
+          <div 
+            className="chat-message assistant typing-indicator" 
+            style={{ borderLeft: `3px solid ${typingState.persona === 'security' ? '#8957e5' : '#3fb950'}` }}
+          >
+            <div className="message-header">
+              <span
+                className="message-role"
+                style={{ color: typingState.persona === 'security' ? '#8957e5' : '#3fb950' }}
+              >
+                {typingState.persona === 'security' ? '🔒 Security' : '👨‍💻 SRE'} is typing
+              </span>
+            </div>
+            <div 
+              className="message-content"
+              style={{ color: typingState.persona === 'security' ? '#8957e5' : '#3fb950' }}
+            >
+              <div className="typing-animation">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
