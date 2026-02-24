@@ -294,7 +294,7 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
       `${idx + 1}. ${item.description}`
     ).join('\n');
 
-    const prompt = `You are a paranoid Security Auditor at Cloudflare starting a security review for region ${workflow.region}.
+    const prompt = `You are a paranoid Security Auditor starting a security review for region ${workflow.region}.
 
 CHECKLIST TO REVIEW:
 ${checklistItems}
@@ -1246,7 +1246,7 @@ Current error rate: ${this.state.regionWorkflows[region].errorRate.toFixed(2)}%`
     const remainingCount = unpatchedRegions.length;
     const nextRegion = remainingCount > 0 ? unpatchedRegions[0] : null;
     
-    const prompt = `You are an experienced SRE at Cloudflare. A kernel patch has been SUCCESSFULLY applied to region ${region}.
+    const prompt = `You are an experienced SRE. A kernel patch has been SUCCESSFULLY applied to region ${region}.
 
 SUCCESS DETAILS:
 - Region: ${region}
@@ -1306,7 +1306,7 @@ Health metrics are improving:
     const patchInfo = PATCH_VERSIONS.find(p => p.version === requiredPatch);
     const regionData = REGIONS.find(r => r.name === region);
 
-    const prompt = `You are an experienced SRE at Cloudflare investigating region ${region} for CVE-2024-8765.
+    const prompt = `You are an experienced SRE investigating region ${region} for CVE-2024-8765.
 
 INVESTIGATION DETAILS:
 - Region: ${region}
@@ -1389,7 +1389,7 @@ This region is ready for patching. I'll monitor for any issues during rollout.`)
     const workflow = this.state.regionWorkflows[region];
     const requiredPatch = workflow.requiredPatch;
 
-    const prompt = `You are an experienced SRE at Cloudflare. A patch rollback has just completed successfully in region ${region}.
+    const prompt = `You are an experienced SRE. A patch rollback has just completed successfully in region ${region}.
 
 ROLLBACK DETAILS:
 - Region: ${region}
@@ -1446,7 +1446,7 @@ I'm standing by to monitor the rollout.`);
     const workflow = this.state.regionWorkflows[region];
     const correctPatch = workflow.requiredPatch;
 
-    const prompt = `You are an experienced SRE at Cloudflare. A patch was applied to region ${region}, but it's the WRONG version.
+    const prompt = `You are an experienced SRE. A patch was applied to region ${region}, but it's the WRONG version.
 
 CURRENT SITUATION:
 - Region: ${region}
@@ -1500,7 +1500,7 @@ Let me know when you're ready to proceed.`);
   }
 
   private async generateSecurityVerificationResponse(region: string, itemIndex: number, totalItems: number, item: any, hasMoreItems: boolean): Promise<void> {
-    const prompt = `You are a paranoid Security Auditor at Cloudflare verifying security checklist items for region ${region}.
+    const prompt = `You are a paranoid Security Auditor verifying security checklist items for region ${region}.
 
 VERIFICATION DETAILS:
 - Region: ${region}
@@ -1549,7 +1549,7 @@ ${hasMoreItems ? `Continue verification: verify ${region}` : `✓ All items veri
   }
 
   private async generateSecurityRegionCompleteResponse(region: string, allRegionsComplete: boolean): Promise<void> {
-    const prompt = `You are a paranoid Security Auditor at Cloudflare. All security checklist items for region ${region} have been verified.
+    const prompt = `You are a paranoid Security Auditor. All security checklist items for region ${region} have been verified.
 
 COMPLETION DETAILS:
 - Region: ${region}
@@ -1592,7 +1592,7 @@ ${allRegionsComplete ? 'All regions verified. Security audit complete.' : 'Conti
   }
 
   private async generateSecurityAuditCompleteResponse(): Promise<void> {
-    const prompt = `You are a paranoid Security Auditor at Cloudflare. ALL 5 regions have completed security verification.
+    const prompt = `You are a paranoid Security Auditor. ALL 5 regions have completed security verification.
 
 AUDIT SUMMARY:
 - Total regions verified: 5/5
@@ -1639,7 +1639,7 @@ Incident Commander, you may now check with SRE for final system stability confir
   }
 
   private async generateSecurityPhaseInitResponse(): Promise<void> {
-    const prompt = `You are a paranoid Security Auditor at Cloudflare. All 5 regions have just been patched and you're beginning the security audit phase.
+    const prompt = `You are a paranoid Security Auditor. All 5 regions have just been patched and you're beginning the security audit phase.
 
 CONTEXT:
 - All kernel patches have been applied across all regions
