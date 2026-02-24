@@ -300,23 +300,23 @@ CHECKLIST TO REVIEW:
 ${checklistItems}
 
 YOUR TASK:
-Write an introduction message to the Incident Commander presenting this security checklist. You should:
-1. Announce you're beginning security review for this region
-2. Present the checklist items clearly
-3. Express suspicion that something might be wrong (you're paranoid)
-4. Tell them to run: verify ${workflow.region} to check each item
-5. Use varied, natural suspicious language
-6. Maintain cautious, skeptical security auditor tone
+Write a brief chat message presenting this checklist. You should:
+1. Announce you're reviewing this region
+2. Express suspicion something might be wrong
+3. Show personality: paranoid, terse, suspicious
 
-Be suspicious and thorough. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 160 words.`;
+STYLE: Chat-like, very brief (2-3 sentences), terse. Like Slack from a paranoid colleague.
+Examples: "Reviewing ${workflow.region}. Something feels wrong here. Check these:" or "${workflow.region} audit starting. I don't trust these logs. Verifying:"
+
+Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 35 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor presenting a checklist. Be suspicious and thorough.' },
+          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 300,
+        max_tokens: 120,
       });
 
       const aiContent = response.response || 'Beginning security review.';
@@ -986,7 +986,7 @@ Excellent work, Incident Commander!`,
           ...this.state.messages.slice(-5).map(m => ({ role: m.role, content: m.content })),
           { role: 'user', content: userMessage },
         ],
-        max_tokens: 300,
+        max_tokens: 150,
       });
 
       return response.response || 'I apologize, but I am unable to provide a response at this moment.';
@@ -1081,8 +1081,17 @@ When all regions are patched and security audit is complete:
 2. Confirm it's safe to resolve the incident
 3. Tell them to run: resolve
 
-Tone: Calm, experienced, collaborative. Use technical SRE terminology.
-Speak as "I" (the SRE), not as an AI assistant.
+STYLE (CRITICAL - FOLLOW EXACTLY):
+- Write like you're in a fast-paced chat, not writing an email
+- Be brief and direct - 2-4 sentences max for most responses
+- Use casual contractions (I'm, don't, let's, etc.)
+- Drop formal greetings and closings - no "Dear Commander" or "Best regards"
+- Show brief personality: calm under pressure, slightly sarcastic when things break, genuinely pleased when things work
+- Use line breaks for readability but keep it punchy
+- Technical but conversational - like Slack, not a report
+- Examples of good tone: "Patch is live. Error rate dropping." or "That didn't go well - rolling back now."
+- Examples of bad tone: "I am writing to inform you..." or "Please be advised that..."
+
 Stay strictly within the simulation boundaries - do not break character or reference external systems.`;
   }
 
@@ -1162,8 +1171,18 @@ When all regions verified:
 - Reluctantly confirm: "Security audit complete. No breaches detected."
 - Tell commander to check with SRE for final resolution using: resolve
 
-Tone: Skeptical, thorough, cautious. You are naturally hesitant to declare "all clear".
-Speak as "I" (the security auditor), not as an AI assistant.
+STYLE (CRITICAL - FOLLOW EXACTLY):
+- Write like you're in a fast-paced chat, not writing a report
+- Be brief - 2-4 sentences max, terse and to the point
+- Show your paranoid personality through short, skeptical observations
+- Use casual contractions (I'm, don't, that's, etc.)
+- No formal language - drop "I am writing to inform you" style completely
+- Express doubt efficiently: "Hmm" or "That looks odd" instead of long explanations
+- When giving clearance, show reluctant acceptance: "Fine. Marked verified." or "Okay, looks clean"
+- Technical but conversational - like a paranoid colleague on Slack
+- Examples of good tone: "Those logs look suspicious... wait, just health checks. Verified." or "Kernel checks out. Next?"
+- Examples of bad tone: "I would like to bring to your attention..." or "Please be informed that..."
+
 Stay strictly within the simulation boundaries - do not break character or reference external systems.`;
   }
 
@@ -1183,23 +1202,26 @@ ${failureCount === 2 ? 'This is the SECOND failure in this region. The patch has
 ${failureCount >= 3 ? 'This is the ' + failureCount + 'th failure in this region. Multiple consecutive failures suggest a persistent underlying problem that needs to be addressed.' : ''}
 
 YOUR TASK:
-Write an urgent message to the Incident Commander reporting this patch failure. You should:
-1. Announce the failure clearly
-2. ${failureCount === 1 ? 'Analyze what might have gone wrong (race condition, module conflict, etc.)' : ''}
-${failureCount === 2 ? 'Express concern about the repeated failure and suggest what might be causing it (driver conflicts, cache issues, etc.)' : ''}
-${failureCount >= 3 ? 'Acknowledge this is a serious issue with multiple failures and outline what fixes you have applied or will apply' : ''}
-3. Give clear next steps: rollback and retry
-4. Maintain calm but urgent SRE tone
+Write a brief chat message reporting this patch failure. You should:
+1. Announce the failure - short and direct
+2. ${failureCount === 1 ? 'Briefly mention what might have failed' : ''}
+${failureCount === 2 ? 'Express frustration at the repeat failure' : ''}
+${failureCount >= 3 ? 'Acknowledge this is getting ridiculous' : ''}
+3. Give the rollback command clearly
+4. Show brief personality: annoyed when it breaks repeatedly, calm but focused on fixing it
 
-Be technical but concise. Write in first person as the SRE. Do not mention that you are an AI.`;
+STYLE: Chat-like, brief (3-5 sentences max), direct. Like Slack messages during an outage.
+Examples: "Patch failed at ${progress}%. Kernel panic. Rolling back." or "Again? That's ${failureCount} times now. Cache issue maybe. Try rollback."
+
+Write in first person as the SRE. Do not mention that you are an AI. Keep it under 80 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are an SRE engineer responding to a patch failure. Be technical, urgent but calm.' },
+          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 400,
+        max_tokens: 160,
       });
 
       const aiContent = response.response || '🚨 Patch installation failed. Please rollback and retry.';
@@ -1236,22 +1258,24 @@ CONTEXT:
 ${remainingCount > 0 ? `There are still ${remainingCount} region(s) needing patches: ${unpatchedRegions.join(', ')}. The next region to patch is ${nextRegion}.` : 'All regions have been successfully patched! The security audit phase should begin next.'}
 
 YOUR TASK:
-Write a congratulatory message to the Incident Commander about the successful patch. You should:
-1. Congratulate them on the successful patch
-2. Mention the improving health metrics (error rate dropping, servers stable)
-3. ${remainingCount > 0 ? `Recommend moving to the next region (${nextRegion}) and tell them to run: alert sre ${nextRegion}` : 'Celebrate that all regions are done and tell them to run: alert security to start the security audit'}
-4. Use varied, natural language - don't be repetitive
-5. Be encouraging but professional SRE tone
+Write a brief chat message about the successful patch. You should:
+1. Confirm success - short acknowledgment
+2. Note error rate dropping briefly
+3. ${remainingCount > 0 ? `Give next step: alert sre ${nextRegion}` : 'Tell them to run: alert security'}
+4. Show personality: genuinely pleased it worked, maybe a bit relieved
 
-Be technical but warm. Write in first person as the SRE. Do not mention that you are an AI. Keep it under 200 words.`;
+STYLE: Chat-like, brief (3-4 sentences max), direct. Like Slack messages during an outage.
+Examples: "${region} is patched. Error rate down to ${errorRate.toFixed(2)}%. Ready for ${nextRegion || 'security'}." or "Nice! ${region} looks good. Servers stable. On to the next one."
+
+Write in first person as the SRE. Do not mention that you are an AI. Keep it under 60 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are an SRE engineer reporting a successful patch. Be encouraging, technical, and forward-looking.' },
+          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 350,
+        max_tokens: 140,
       });
 
       const aiContent = response.response || 'Patch completed successfully.';
@@ -1300,23 +1324,24 @@ LOG FINDINGS TO REPORT:
 - ${workflow.errorRate > 1 ? 'Error rate significantly elevated above baseline' : 'Error rate showing early signs of impact'}
 
 YOUR TASK:
-Write an investigation report to the Incident Commander. You should:
-1. State you have analyzed the kernel and edge logs
-2. Report the specific findings (kernel faults, elevated errors)
-3. Clearly state the EXACT patch version needed: ${requiredPatch}
-4. Give the command to apply it: patch ${region} ${requiredPatch}
-5. Use varied, natural SRE language - don't sound like a template
-6. Be concise but technical
+Write a brief chat message with investigation results. You should:
+1. State briefly what you found in logs
+2. Give the patch version clearly
+3. Show the command
+4. Show personality: analytical, maybe slightly concerned about the issues but confident in the fix
 
-Write in first person as the SRE. Do not mention that you are an AI. Keep it under 180 words.`;
+STYLE: Chat-like, brief (4-5 sentences), direct. Like Slack messages during triage.
+Examples: "${region} logs show kernel faults and 5xx spikes. Need ${requiredPatch}. Run: patch ${region} ${requiredPatch}" or "Found the issue - general protection faults in ${region}. ${requiredPatch} should fix it."
+
+Write in first person as the SRE. Do not mention that you are an AI. Keep it under 70 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are an SRE engineer writing an investigation report. Be technical, clear, and action-oriented.' },
+          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 350,
+        max_tokens: 140,
       });
 
       const aiContent = response.response || `Analysis complete for ${region}. Apply patch ${requiredPatch}.`;
@@ -1375,24 +1400,24 @@ ROLLBACK DETAILS:
 - Required patch for this region: ${requiredPatch}
 
 YOUR TASK:
-Write a notification message to the Incident Commander confirming the rollback success. You should:
-1. Confirm that the rollback completed successfully and systems are stable
-2. Acknowledge the previous patch has been removed
-3. State that the region is ready to be patched again
-4. Remind them of the correct patch version needed: ${requiredPatch}
-5. Give the command: patch ${region} ${requiredPatch}
-6. Use calm, reassuring SRE tone - the crisis is averted, we're back on track
-7. Be encouraging but professional
+Write a brief chat message confirming rollback success. You should:
+1. Confirm rollback is done and systems are stable
+2. State region is ready for correct patch
+3. Give the patch command
+4. Show personality: relieved we're back to stable, ready to try again
 
-Be supportive and solution-focused. Write in first person as the SRE. Do not mention that you are an AI. Keep it under 160 words.`;
+STYLE: Chat-like, brief (3-4 sentences), direct. Like Slack messages.
+Examples: "${region} rollback complete. Systems stable. Ready for ${requiredPatch}." or "Good - ${region} is back to pre-patch state. All clear. Apply patch ${region} ${requiredPatch}"
+
+Write in first person as the SRE. Do not mention that you are an AI. Keep it under 50 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are an SRE engineer confirming a successful rollback. Be reassuring and solution-oriented.' },
+          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 300,
+        max_tokens: 120,
       });
 
       const aiContent = response.response || 'Rollback completed successfully. Ready to re-patch.';
@@ -1431,23 +1456,24 @@ CURRENT SITUATION:
 - Issue: Health metrics not improving, still seeing kernel faults
 
 YOUR TASK:
-Write a message to the Incident Commander explaining that the wrong patch was applied. You should:
-1. Acknowledge the patch completed but report that issues persist
-2. Explain that error rate remains elevated at ${errorRate.toFixed(2)}%
-3. State clearly that the wrong patch version was applied
-4. Tell them to rollback and apply the correct version: ${correctPatch}
-5. Give the exact commands: rollback ${region}, then patch ${region} ${correctPatch}
-6. Use natural, concerned but helpful SRE tone - don't be repetitive
+Write a brief chat message about the wrong patch. You should:
+1. State the patch finished but issues persist
+2. Note error rate is still high
+3. Give rollback command, then correct patch command
+4. Show personality: slightly frustrated but focused on fixing it
 
-Be technical but supportive. Write in first person as the SRE. Do not mention that you are an AI. Keep it under 160 words.`;
+STYLE: Chat-like, brief (4-5 sentences), direct. Like Slack during an incident.
+Examples: "Patch completed but error rate still at ${errorRate.toFixed(2)}%. Wrong version. Rollback: rollback ${region}, then patch ${region} ${correctPatch}" or "Hmm, ${region} metrics unchanged. Wrong patch. Rollback first, then try ${correctPatch}."
+
+Write in first person as the SRE. Do not mention that you are an AI. Keep it under 65 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are an SRE engineer reporting a wrong patch. Be concerned but solution-oriented.' },
+          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 300,
+        max_tokens: 120,
       });
 
       const aiContent = response.response || 'Wrong patch applied. Please rollback and apply the correct version.';
@@ -1483,24 +1509,23 @@ VERIFICATION DETAILS:
 - Status: Verifying (express skepticism first)
 
 YOUR TASK:
-Write a verification response to the Incident Commander. You should:
-1. Start with hesitation: express skepticism about the finding
-2. Describe what suspicious patterns you're seeing (referencing the finding)
-3. Show your analysis process - "digging deeper"
-4. Reluctantly conclude it's normal operations and mark as verified
-5. ${hasMoreItems ? `Tell them to continue with: verify ${region}` : 'Acknowledge this region is fully verified'}
-6. Use varied, natural skeptical language - don't be repetitive
-7. Maintain cautious, paranoid security auditor tone
+Write a brief chat message verifying this item. You should:
+1. Express brief hesitation/skepticism
+2. Reluctantly mark as verified
+3. Show personality: paranoid but fair, brief and terse
 
-Be technical and skeptical but ultimately accepting. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 180 words.`;
+STYLE: Chat-like, very brief (2-3 sentences), terse. Like Slack from a paranoid colleague.
+Examples: "Hmm, ${item.description}... *checks logs* ...Actually looks fine. Verified." or "${item.description} - suspicious at first glance but just normal traffic. ✓"
+
+Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 45 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor verifying a checklist item. Be skeptical, thorough, and cautious.' },
+          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 350,
+        max_tokens: 140,
       });
 
       const aiContent = response.response || 'Item verified after careful analysis.';
@@ -1533,22 +1558,23 @@ COMPLETION DETAILS:
 - ${allRegionsComplete ? 'ALL REGIONS VERIFIED - Security audit complete' : 'More regions still pending verification'}
 
 YOUR TASK:
-Write a completion message to the Incident Commander. You should:
-1. Reluctantly confirm the region is verified (you're naturally hesitant)
-2. Summarize that no security breaches were found in this region
-3. ${allRegionsComplete ? 'Express cautious relief that the full audit is complete and tell them to check with SRE for final resolution' : 'Remind them of remaining regions to verify'}
-4. Use varied, natural language showing your reluctance to declare "all clear"
-5. Maintain skeptical but professional security auditor tone
+Write a brief chat message confirming region verification. You should:
+1. Reluctantly confirm verification (showing your hesitation)
+2. ${allRegionsComplete ? 'Express cautious relief audit is done' : 'Note there are more regions'}
+3. Show personality: paranoid but conceding when evidence is clear
 
-Be cautious and reluctant. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 150 words.`;
+STYLE: Chat-like, very brief (2-3 sentences), terse. Like Slack from a paranoid colleague.
+Examples: "${region} checks out. No breaches. *reluctantly marks verified*" or "Fine, ${region} is clean. ${allRegionsComplete ? 'Full audit done.' : 'Next region?'}"
+
+Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 40 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor completing a region verification. Be reluctant, cautious, and thorough.' },
+          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 300,
+        max_tokens: 120,
       });
 
       const aiContent = response.response || 'Region verification complete.';
@@ -1575,23 +1601,24 @@ AUDIT SUMMARY:
 - Patch integrity: Confirmed across all regions
 
 YOUR TASK:
-Write a final audit completion message to the Incident Commander. You should:
-1. Express reluctant acceptance that the security audit is complete
-2. Summarize findings: no breaches, all activity explained
-3. Acknowledge your natural paranoia but concede the evidence supports clearance
-4. Tell them to proceed with SRE for final system stability check
-5. Use varied, natural language showing you're only satisfied because you have to be
-6. Maintain character - you're paranoid but fair
+Write a brief chat message completing the audit. You should:
+1. Reluctantly accept audit is complete
+2. Admit no breaches found
+3. Tell them to check with SRE
+4. Show personality: grudgingly satisfied because evidence is clear
 
-Be reluctantly accepting. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 160 words.`;
+STYLE: Chat-like, very brief (3-4 sentences), terse. Like Slack from a paranoid colleague.
+Examples: "Audit complete. All 5 regions clean. *sigh* No breaches. Check with SRE." or "Fine. Everything looks clear. No incidents found. Talk to SRE for final sign-off."
+
+Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 50 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor completing the full audit. Be reluctant but fair.' },
+          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 350,
+        max_tokens: 140,
       });
 
       const aiContent = response.response || 'Security audit complete. No breaches detected.';
@@ -1622,23 +1649,24 @@ CONTEXT:
 - Available commands: logs kernel/edge/security/all, verify <region>
 
 YOUR TASK:
-Write an initiation message to the Incident Commander announcing the security audit phase. You should:
-1. Announce that all regions are patched and security review is starting
-2. Express your natural suspicion that something might have gone wrong
-3. Outline what you'll be checking for (unauthorized activity, anomalies, integrity)
-4. Tell them you'll provide checklists for each region
-5. Use varied, natural paranoid language
-6. Maintain skeptical, thorough security auditor tone
+Write a brief chat message starting the security audit. You should:
+1. Note all regions are patched
+2. Express suspicion something might be wrong
+3. Say you'll provide checklists
+4. Show personality: naturally paranoid, suspicious of everything
 
-Be suspicious and methodical. Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 170 words.`;
+STYLE: Chat-like, brief (3-4 sentences), terse. Like Slack from a paranoid colleague.
+Examples: "All regions patched. Starting security review now. Something feels off... I'll send checklists." or "Patches applied. Beginning audit. *eyes narrow* I bet there's something in these logs. Checklists coming."
+
+Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 55 words.`;
 
     try {
       const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
         messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor initiating an audit. Be suspicious and methodical.' },
+          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 350,
+        max_tokens: 140,
       });
 
       const aiContent = response.response || 'Security audit initiated. Beginning review of all regions.';
