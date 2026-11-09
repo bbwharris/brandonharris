@@ -5,6 +5,32 @@ import { createInitialState, PATCH_VERSIONS, generateSecurityChecklist, REGIONS,
 import { IncidentTools } from './tools';
 import type { Env } from './env';
 
+const MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const MAX_MESSAGE_LENGTH = 8_000;
+const MAX_CHAT_LENGTH = 2_000;
+const MAX_MESSAGES_PER_MINUTE = 30;
+const ALLOWED_ORIGINS: Record<string, true> = {
+  'https://brandon-harris.com': true,
+  'https://www.brandon-harris.com': true,
+  'https://agents.brandon-harris.com': true,
+};
+
+function getAllowedOrigin(request: Request): string | null {
+  const origin = request.headers.get('Origin');
+  if (!origin) return null;
+
+  if (ALLOWED_ORIGINS[origin] || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    return origin;
+  }
+
+  return null;
+}
+
+function corsHeaders(request: Request): Record<string, string> {
+  const origin = getAllowedOrigin(request);
+  return origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
+}
+
 export class IncidentAgent extends Agent<Env, IncidentState> {
   initialState = (() => {
     const now = new Date();
@@ -19,6 +45,8 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
   private readonly TIME_ACCELERATION = 10;
   private readonly TICK_INTERVAL = 5000; // 5 seconds real time
   private tickInterval?: ReturnType<typeof setInterval>;
+  private ownerConnectionId?: string;
+  private readonly messageWindows = new Map<string, number[]>();
   
   async onRequest(request: Request): Promise<Response> {
     // Handle WebSocket upgrade requests
@@ -38,16 +66,18 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
       connections: Array.from(this.getConnections()).length,
       state: this.state,
     }), {
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        ...corsHeaders(request),
       },
     });
   }
 
   async onConnect(connection: Connection) {
     console.log(`Client connected: ${connection.id}`);
-    
+
+    this.ownerConnectionId ??= connection.id;
+
     // Start the simulation tick
     this.startSimulation();
     
@@ -61,7 +91,13 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
   
   async onDisconnect(connection: Connection) {
     console.log(`Client disconnected: ${connection.id}`);
-    
+
+    this.messageWindows.delete(connection.id);
+
+    if (this.ownerConnectionId === connection.id) {
+      this.ownerConnectionId = Array.from(this.getConnections()).find((client) => client.id !== connection.id)?.id;
+    }
+
     // Stop simulation if no more connections
     const connections = Array.from(this.getConnections());
     if (connections.length === 0) {
@@ -72,30 +108,68 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
   async onMessage(connection: Connection, message: string | ArrayBuffer) {
     try {
       const text = typeof message === 'string' ? message : new TextDecoder().decode(message);
+
+      if (text.length > MAX_MESSAGE_LENGTH) {
+        connection.send(JSON.stringify({
+          type: 'error',
+          error: `Message exceeds ${MAX_MESSAGE_LENGTH} characters`,
+        }));
+        return;
+      }
+
+      if (this.isRateLimited(connection.id)) {
+        connection.send(JSON.stringify({
+          type: 'error',
+          error: 'Rate limit exceeded. Try again in a minute.',
+        }));
+        return;
+      }
+
       const data = JSON.parse(text);
-      
-      if (data.type === 'call' && data.method) {
-        let result: any;
-        
+
+      if (data.type === 'call' && typeof data.method === 'string') {
+        const args = Array.isArray(data.args) ? data.args : [];
+        let result: unknown;
+
         switch (data.method) {
-          case 'executeCommand':
-            result = await this.executeCommand(data.args[0], data.args[1] || []);
+          case 'executeCommand': {
+            const command = args[0];
+            if (typeof command !== 'string' || command.length === 0 || command.length > 100) {
+              result = { success: false, output: 'Invalid command.' };
+              break;
+            }
+
+            const commandArgs = Array.isArray(args[1]) ? args[1].slice(0, 10).map(String) : [];
+            result = await this.executeCommand(command, commandArgs);
             break;
-          case 'sendMessage':
-            await this.sendMessage(data.args[0]);
+          }
+          case 'sendMessage': {
+            const content = args[0];
+            if (typeof content !== 'string' || content.trim().length === 0 || content.length > MAX_CHAT_LENGTH) {
+              result = { success: false, error: `Message must be between 1 and ${MAX_CHAT_LENGTH} characters.` };
+              break;
+            }
+
+            await this.sendMessage(content.trim());
             result = { success: true };
             break;
+          }
           case 'getState':
             result = this.getState();
             break;
           case 'reset':
+            if (this.ownerConnectionId && connection.id !== this.ownerConnectionId) {
+              result = { success: false, error: 'Only the session owner can reset the simulation.' };
+              break;
+            }
+
             this.reset();
             result = { success: true };
             break;
           default:
             result = { error: `Unknown method: ${data.method}` };
         }
-        
+
         // Send response back to client
         connection.send(JSON.stringify({
           type: 'response',
@@ -110,6 +184,17 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
         error: 'Failed to process message',
       }));
     }
+  }
+
+  private isRateLimited(connectionId: string): boolean {
+    const now = Date.now();
+    const cutoff = now - 60_000;
+    const recent = (this.messageWindows.get(connectionId) ?? []).filter((timestamp) => timestamp > cutoff);
+
+    recent.push(now);
+    this.messageWindows.set(connectionId, recent);
+
+    return recent.length > MAX_MESSAGES_PER_MINUTE;
   }
   
   private startSimulation() {
@@ -311,15 +396,10 @@ Examples: "Reviewing ${workflow.region}. Something feels wrong here. Check these
 Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 35 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 120,
-      });
-
-      const aiContent = response.response || 'Beginning security review.';
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
+        { role: 'user', content: prompt },
+      ], 120)) || 'Beginning security review.';
 
       await this.triggerAIResponse('security', `🔍 SECURITY CHECKLIST: ${workflow.region.toUpperCase()}\n\n${aiContent}\n\n${checklistItems}\n\nRun: verify ${workflow.region}`);
     } catch (error: any) {
@@ -862,10 +942,16 @@ Excellent work, Incident Commander!`,
   
   @callable()
   async sendMessage(content: string): Promise<void> {
+    const trimmed = typeof content === 'string' ? content.trim() : '';
+
+    if (trimmed.length === 0 || trimmed.length > MAX_CHAT_LENGTH) {
+      throw new Error(`Message must be between 1 and ${MAX_CHAT_LENGTH} characters.`);
+    }
+
     const message: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      content,
+      content: trimmed,
       timestamp: new Date().toISOString(),
     };
     
@@ -884,7 +970,7 @@ Excellent work, Incident Commander!`,
     this.broadcastTypingIndicator(true);
     
     // Generate AI response using Llama 3.1
-    const response = await this.generateAIResponse(content);
+    const response = await this.generateAIResponse(trimmed);
     
     // Hide typing indicator
     this.broadcastTypingIndicator(false);
@@ -894,7 +980,7 @@ Excellent work, Incident Commander!`,
       role: 'assistant',
       content: response,
       timestamp: new Date().toISOString(),
-      persona: this.state.aiPersona,
+      persona: this.state.aiPersona ?? undefined,
     };
     
     this.setState({
@@ -976,20 +1062,24 @@ Excellent work, Incident Commander!`,
     })));
   }
   
+  private async callAI(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>, maxTokens: number): Promise<string> {
+    const response = await this.env.AI.run(MODEL, {
+      messages,
+      max_tokens: maxTokens,
+    });
+
+    return response.response?.trim() ?? '';
+  }
+
   private async generateAIResponse(userMessage: string): Promise<string> {
     const systemPrompt = this.getSystemPromptForPersona();
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...this.state.messages.slice(-5).map(m => ({ role: m.role, content: m.content })),
-          { role: 'user', content: userMessage },
-        ],
-        max_tokens: 150,
-      });
-
-      return response.response || 'I apologize, but I am unable to provide a response at this moment.';
+      return (await this.callAI([
+        { role: 'system', content: systemPrompt },
+        ...this.state.messages.slice(-5).map(m => ({ role: m.role, content: m.content })),
+        { role: 'user', content: userMessage },
+      ], 150)) || 'I apologize, but I am unable to provide a response at this moment.';
     } catch (error: any) {
       console.error('AI generation error:', error);
 
@@ -1216,15 +1306,10 @@ Examples: "Patch failed at ${progress}%. Kernel panic. Rolling back." or "Again?
 Write in first person as the SRE. Do not mention that you are an AI. Keep it under 80 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 160,
-      });
-
-      const aiContent = response.response || '🚨 Patch installation failed. Please rollback and retry.';
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
+        { role: 'user', content: prompt },
+      ], 160)) || '🚨 Patch installation failed. Please rollback and retry.';
       
       await this.triggerAIResponse('sre', `🚨 PATCH FAILURE in ${region.toUpperCase()}!\n\n${aiContent}\n\nCurrent error rate: ${this.state.regionWorkflows[region].errorRate.toFixed(2)}%`);
     } catch (error: any) {
@@ -1270,15 +1355,10 @@ Examples: "${region} is patched. Error rate down to ${errorRate.toFixed(2)}%. Re
 Write in first person as the SRE. Do not mention that you are an AI. Keep it under 60 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 140,
-      });
-
-      const aiContent = response.response || 'Patch completed successfully.';
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
+        { role: 'user', content: prompt },
+      ], 140)) || 'Patch completed successfully.';
       
       await this.triggerAIResponse('sre', `✅ PATCH SUCCESS: ${region.toUpperCase()}\n\n${aiContent}`);
     } catch (error: any) {
@@ -1336,15 +1416,10 @@ Examples: "${region} logs show kernel faults and 5xx spikes. Need ${requiredPatc
 Write in first person as the SRE. Do not mention that you are an AI. Keep it under 70 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 140,
-      });
-
-      const aiContent = response.response || `Analysis complete for ${region}. Apply patch ${requiredPatch}.`;
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
+        { role: 'user', content: prompt },
+      ], 140)) || `Analysis complete for ${region}. Apply patch ${requiredPatch}.`;
       
       await this.triggerAIResponse('sre', `👨‍💻 SRE INVESTIGATION: ${region.toUpperCase()}\n\n${aiContent}`);
     } catch (error: any) {
@@ -1412,15 +1487,10 @@ Examples: "${region} rollback complete. Systems stable. Ready for ${requiredPatc
 Write in first person as the SRE. Do not mention that you are an AI. Keep it under 50 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 120,
-      });
-
-      const aiContent = response.response || 'Rollback completed successfully. Ready to re-patch.';
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
+        { role: 'user', content: prompt },
+      ], 120)) || 'Rollback completed successfully. Ready to re-patch.';
 
       await this.triggerAIResponse('sre', `↩️ ROLLBACK COMPLETE: ${region.toUpperCase()}\n\n${aiContent}`);
     } catch (error: any) {
@@ -1468,15 +1538,10 @@ Examples: "Patch completed but error rate still at ${errorRate.toFixed(2)}%. Wro
 Write in first person as the SRE. Do not mention that you are an AI. Keep it under 65 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 120,
-      });
-
-      const aiContent = response.response || 'Wrong patch applied. Please rollback and apply the correct version.';
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are an SRE engineer in chat. Be brief, direct, conversational. Like Slack during an outage. Use terse sentences.' },
+        { role: 'user', content: prompt },
+      ], 120)) || 'Wrong patch applied. Please rollback and apply the correct version.';
       
       await this.triggerAIResponse('sre', `⚠️ WRONG PATCH: ${region.toUpperCase()}\n\n${aiContent}`);
     } catch (error: any) {
@@ -1520,15 +1585,10 @@ Examples: "Hmm, ${item.description}... *checks logs* ...Actually looks fine. Ver
 Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 45 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 140,
-      });
-
-      const aiContent = response.response || 'Item verified after careful analysis.';
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
+        { role: 'user', content: prompt },
+      ], 140)) || 'Item verified after careful analysis.';
 
       await this.triggerAIResponse('security', `🔍 VERIFICATION: ${region.toUpperCase()} - Item ${itemIndex + 1}/${totalItems}\n\n${aiContent}\n\n${hasMoreItems ? `Continue verification: verify ${region}` : `✓ All items verified for ${region}.`}`);
     } catch (error: any) {
@@ -1569,15 +1629,10 @@ Examples: "${region} checks out. No breaches. *reluctantly marks verified*" or "
 Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 40 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 120,
-      });
-
-      const aiContent = response.response || 'Region verification complete.';
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
+        { role: 'user', content: prompt },
+      ], 120)) || 'Region verification complete.';
 
       await this.triggerAIResponse('security', `✓ SECURITY VERIFICATION COMPLETE: ${region.toUpperCase()}\n\n${aiContent}\n\n${allRegionsComplete ? 'All regions verified. Security audit complete.' : 'Continue verifying remaining regions.'}`);
     } catch (error: any) {
@@ -1613,15 +1668,10 @@ Examples: "Audit complete. All 5 regions clean. *sigh* No breaches. Check with S
 Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 50 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 140,
-      });
-
-      const aiContent = response.response || 'Security audit complete. No breaches detected.';
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
+        { role: 'user', content: prompt },
+      ], 140)) || 'Security audit complete. No breaches detected.';
 
       await this.triggerAIResponse('security', `🔒 SECURITY AUDIT COMPLETE\n\n${aiContent}\n\nIncident Commander, you may now check with SRE for final system stability confirmation.`);
     } catch (error: any) {
@@ -1661,15 +1711,10 @@ Examples: "All regions patched. Starting security review now. Something feels of
 Write in first person as the Security Auditor. Do not mention that you are an AI. Keep it under 55 words.`;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-          { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 140,
-      });
-
-      const aiContent = response.response || 'Security audit initiated. Beginning review of all regions.';
+      const aiContent = (await this.callAI([
+        { role: 'system', content: 'You are a paranoid Security Auditor in chat. Be brief, skeptical, terse. Like Slack messages. Short sentences.' },
+        { role: 'user', content: prompt },
+      ], 140)) || 'Security audit initiated. Beginning review of all regions.';
 
       await this.triggerAIResponse('security', `🔒 SECURITY AUDIT INITIATED\n\n${aiContent}\n\nStarting with region analysis...`);
     } catch (error: any) {
@@ -1814,13 +1859,18 @@ EXAMPLES
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
-    
+    const origin = request.headers.get('Origin');
+
+    if (origin && !getAllowedOrigin(request)) {
+      return new Response('Forbidden', { status: 403 });
+    }
+
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         status: 204,
         headers: {
-          'Access-Control-Allow-Origin': '*',
+          ...corsHeaders(request),
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type',
         },
@@ -1841,7 +1891,9 @@ export default {
       if (response) {
         // Create new response with CORS headers (original headers are immutable)
         const newHeaders = new Headers(response.headers);
-        newHeaders.set('Access-Control-Allow-Origin', '*');
+        for (const [key, value] of Object.entries(corsHeaders(request))) {
+          newHeaders.set(key, value);
+        }
         return new Response(response.body, {
           status: response.status,
           statusText: response.statusText,

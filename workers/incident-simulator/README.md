@@ -36,8 +36,8 @@ This simulator puts you in the role of an Incident Commander responding to a P0 
 
 ### Prerequisites
 
-- Node.js 18+
-- npm or yarn
+- Node.js 20.19+ (required by Vite 7)
+- npm
 - Cloudflare account (for deployment)
 
 ### Installation
@@ -47,10 +47,17 @@ This simulator puts you in the role of an Incident Commander responding to a P0 
 cd workers/incident-simulator
 
 # Install worker dependencies
-npm install
+npm ci
 
 # Install UI dependencies
-cd ui && npm install && cd ..
+cd ui && npm ci && cd ..
+```
+
+### Checks
+
+```bash
+npm run typecheck
+npm test
 ```
 
 ## Common Development Tasks
@@ -254,6 +261,7 @@ workers/incident-simulator/
 │   ├── agent.ts          # Main IncidentAgent class
 │   ├── tools.ts          # Command implementations
 │   ├── scenario.ts       # Incident definition and logs
+│   ├── scenario.test.ts  # Scenario unit tests
 │   ├── types.ts          # TypeScript interfaces
 │   ├── index.ts          # Worker entry point
 │   └── env.d.ts          # Environment type definitions

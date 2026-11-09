@@ -1,6 +1,26 @@
-_site/*
-.ruby-version
-.ruby-gemset
+# Hugo
 public/
-.#*
+resources/_gen/
 .hugo_build.lock
+
+# Node
+node_modules/
+.wrangler/
+
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+.dev.vars
+.npmrc
+.netrc
+*.pem
+*.key
+*.p12
+*.pfx
+
+# macOS
+.DS_Store
+
+# Editor
+.#*

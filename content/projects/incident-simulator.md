@@ -18,11 +18,7 @@ This simulator is built with:
 - **React**: Interactive terminal-style UI
 - **SQLite**: Persistent state management
 
-<div class="buttons" style="max-width: none;">
-  <a class="button" href="https://agents.brandon-harris.com/incident/" target="_blank" style="box-shadow: none;">
-    <span class="button-inner">🚨 Launch Simulator</span>
-  </a>
-</div>
+{{< project-button href="https://agents.brandon-harris.com/incident/" label="🚨 Launch Simulator" >}}
 
 ### Disclosure
 

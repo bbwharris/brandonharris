@@ -20,7 +20,7 @@ rm -rf public/ && hugo --gc --minify
 
 ## Hugo Version
 
-This site uses Hugo **0.120.0** (specified in `.hugoversion`).
+This site uses Hugo **0.169.0** (specified in `.hugoversion` and `.cloudflare/pages.toml`).
 
 ## Project Structure
 
@@ -28,15 +28,18 @@ This site uses Hugo **0.120.0** (specified in `.hugoversion`).
 /Users/bbwharris/Documents/src/brandonharris/
 ├── config.toml          # Hugo site configuration
 ├── content/             # All site content (Markdown)
-│   ├── _index.md        # Homepage
 │   ├── about.md         # About page
-│   ├── posts/           # Blog posts
+│   ├── posts/           # Curated writing links
+│   ├── projects/        # Project landing pages
 │   └── archive/         # Historical posts (2009-2016)
-├── static/              # Static assets (images, CSS, JS)
+├── layouts/shortcodes/  # Local shortcode overrides
+├── static/              # Static assets (images, headers, redirects)
 │   ├── images/
-│   ├── stylesheets/
-│   └── javascripts/
+│   ├── _headers
+│   └── _redirects
 ├── themes/PaperMod/     # Hugo theme (do not modify)
+├── workers/             # Cloudflare Worker projects
+│   └── incident-simulator/
 └── .cloudflare/         # Cloudflare Pages config
 ```
 
@@ -61,8 +64,9 @@ aliases:
 ### Content Types
 
 - **Pages**: Static pages like `about.md`
-- **Posts**: Blog content in `content/posts/`
-- **Archive**: Historical content in `content/archive/`
+- **Posts**: Curated writing in `content/posts/`
+- **Projects**: Project pages in `content/projects/`
+- **Archive**: Historical Markdown posts in `content/archive/`
 
 ### Markdown Style
 
@@ -138,6 +142,9 @@ hugo --gc --minify
 
 # Verify all pages render
 hugo server && curl -s http://localhost:1313 | head
+
+# Worker checks
+cd workers/incident-simulator && npm run typecheck && npm test
 
 # Check for broken links (requires external tool)
 # hugo server && linkchecker http://localhost:1313

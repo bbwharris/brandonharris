@@ -1,6 +1,7 @@
 baseurl = "https://brandon-harris.com"
 title = "Brandon Harris"
-languageCode = "en-US"
+locale = "en-US"
+enableRobotsTXT = true
 theme = "PaperMod"
 [pagination]
 pagerSize = 10
@@ -9,13 +10,13 @@ pagerSize = 10
 name = "Brandon Harris"
 
 [params]
-env = "production"
 description = "Welcome. I'm Brandon Harris, VP of Engineering at Cloudflare. I lead engineering teams building infrastructure at global scale."
 keywords = ["Brandon Harris", "VP Engineering", "Cloudflare", "Leadership", "Engineering Management"]
 author = "Brandon Harris"
-#images = ["<link or path of image for opengraph, twitter-cards>"]
+images = ["/images/og-default.png"]
+mainSections = ["archive"]
 DateFormat = "January 2, 2006"
-defaultTheme = "light"
+defaultTheme = "auto"
 ShowReadingTime = true
 ShowPostNavLinks = true
 ShowBreadCrumbs = true
@@ -51,8 +52,13 @@ name = "strava"
 url = "https://www.strava.com/athletes/bbwharris"
 
 [params.assets]
-disableHLJS = false
 disableFingerprinting = false
+favicon = "/favicon.svg"
+favicon16x16 = "/favicon-16x16.png"
+favicon32x32 = "/favicon-32x32.png"
+apple_touch_icon = "/apple-touch-icon.png"
+safari_pinned_tab = "/safari-pinned-tab.svg"
+theme_color = "#0b1220"
 
 [params.label]
 text = "Home"
@@ -95,11 +101,14 @@ weight = 50
 noClasses = false
 codeFences = true
 guessSyntax = true
-lineNos = true
+lineNos = false
 style = "monokai"
 
 [markup.goldmark]
 [markup.goldmark.renderer]
 hardWraps = false
-unsafe = true
+unsafe = false
 xhtml = false
+
+[security]
+allowContent = ["^text/markdown$"]

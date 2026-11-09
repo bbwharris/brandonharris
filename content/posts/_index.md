@@ -1,6 +1,7 @@
 ---
 title: "Writing"
 url: "/posts/"
+outputs: ["html"]
 ---
 
 Select writing on engineering leadership and infrastructure at scale.
