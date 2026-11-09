@@ -1,0 +1,54 @@
+---
+categories:
+- rails
+date: 2011-03-29T00:00:00Z
+title: JSON Templates in Rails
+url: /2011/03/29/json-templates-in-rails/
+---
+
+Sometimes, you just don't want to do call the "to\_json" message on an object. It could be that the object has a lot of attributes, the json needs are very simple, or you simply don't like the default structure.
+
+Fortunately, there is a very easy solution: JSON templates. This is built in, and you might have not even known it.
+
+In my case, I wanted to plot a bunch of people and their locations on a map. I had the following model:
+
+```ruby
+class Person < ActiveRecord::Base
+  # ...
+
+  def geo_location
+    [latitude,longitude].compact.join(",")
+  end
+
+  # ...
+end
+```
+
+I have the following controller:
+
+```ruby
+class PeopleController < ApplicationController
+  respond_to :html, :json
+
+  def index
+   @people = Person.find(:all)
+   respond_with(@people)
+  end
+  # ...
+end
+```
+
+Now, create index.json.erb. I tried doing this with haml, but I really didn't like the way I had to handle the necessary whitespace. Your call if you want to use it.
+
+```erb
+[
+<%- @people.each do |p| %>
+  {
+    "id": "<%=p.id %>",
+    "location": "<%= p.location %>"
+  },
+<% end %>
+{}]
+```
+
+There is a wart, the trailing {}. I didn't want to include any logic, as it would slow down this rather large dataset. The whole reason I am doing it this way is for speed. I have no need to display all the attribute data from the "people" table, I just need to plot a heat map. Suggestions are welcome, the side effect is that the last point that is attempted to be plotted, is ignored.

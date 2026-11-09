@@ -1,0 +1,41 @@
+name: Site
+
+on:
+  push:
+    paths:
+      - "content/**"
+      - "layouts/**"
+      - "static/**"
+      - "config.toml"
+      - ".hugoversion"
+      - ".github/workflows/site.yml"
+  pull_request:
+    paths:
+      - "content/**"
+      - "layouts/**"
+      - "static/**"
+      - "config.toml"
+      - ".hugoversion"
+      - ".github/workflows/site.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "0.169.0"
+          extended: true
+
+      - name: Build
+        run: hugo --gc --minify
+
+      - name: Check internal links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --no-progress public

@@ -1,0 +1,23 @@
+---
+categories:
+- rails
+date: 2012-08-02T00:00:00Z
+title: Active Record Is Not Null In Where Clause
+url: /2012/08/02/active-record-is-not-null-where-clause/
+---
+
+I had a difficult time finding out how to do this the way I wanted. Let's say you want to do a check for a value not being null along with other logic, say an IN clause. You're led down a path of forumulating a string that gets hairy
+
+```ruby
+    ids = [1,2,3]
+    SomeRecord.where("some_column is not null and id in (#{ids.join(','})")
+```
+
+That's kind of gross. I've done it, and I've seen it done. This is just a trivial example, if you have more conditions you can be tempted to expand that string. However, there is a cleaner way.
+
+```ruby
+  ids = [1,2,3]
+  SomeRecord.where('some_column is not null').where(:id => ids)
+```
+
+Much nicer use of chaining and AREL.

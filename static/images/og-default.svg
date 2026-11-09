@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f8fafc"/>
+  <rect width="14" height="630" fill="#2563eb"/>
+  <circle cx="1050" cy="160" r="96" fill="#0b1220"/>
+  <text x="1050" y="192" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="64" font-weight="700" fill="#f8fafc" text-anchor="middle">BH</text>
+  <text x="96" y="232" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="68" font-weight="700" fill="#0f172a">Brandon Harris</text>
+  <text x="96" y="304" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="38" fill="#334155">VP of Engineering at Cloudflare</text>
+  <text x="96" y="382" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="28" fill="#64748b">Engineering leadership, infrastructure at scale, and incident response.</text>
+  <text x="96" y="540" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" fill="#64748b">brandon-harris.com</text>
+</svg>

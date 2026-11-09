@@ -1,0 +1,128 @@
+---
+date: 2016-04-06T00:00:00Z
+title: Interviewing As a Developer Today
+description: "My experience and conclusions regarding the standard interview process for developers"
+url: /2016/04/06/interviewing-as-a-developer-today/
+---
+
+It's been several years since I've had to go through the full interviewing process. The technical interviewing process has been changing slightly over the years. There have been a few additions that have increased the time committment considerably. This is my take away from a dozen different interviews that I recently experienced.
+
+## Getting Started
+
+It's tricky to interview for a job while you have a current job. On any given day I could be pulled into important meetings, have to deal with a fire drill, or stumble with coming up with another excuse to be absent for a mysterious period of time.
+
+At this point in my career, I have amassed an awesome network of smart people, so discreetely dropping the hint that I was interested in new opportunities was my first step. I was perhaps a little too discreet at first, as I wasn't entirely sure if I wanted to go through the torment of the technical interview process.
+
+I rolled up my sleeves, and started updating my LinkedIn profile. I took special care to turn off broadcasting updates I had made. Generally, if you are updating LinkedIn, you are probably on the hunt. I did not want to give any indication that I was looking. After I was satisfied with an updated profile, I began updating my resume.
+
+From the time I had last updated my resume and this time, I had become well versed in skimming resumes. I don't claim to have resume superpowers, I am just as terrible as everyone else at choosing resumes, however there is a general structure that stands out.
+
+1. Be brief
+2. Only 3 Positions *relevant* to the new job
+3. List Skills
+
+For me, brevity is extremely important. Your resume should just be the highlights. If I like the highlights, we will talk about the rest during the interview. If you have 15 previous positions, please don't list them all. Just list the important ones that showcase why this job is good for you. Finally, put your skills in a list thats easy to read.
+
+Needless to say, I took one look at my untouched resume and tossed it. It would not pass my filter, so chances are it wouldn't pass other filters either. It takes time to craft a good resume, so don't rush this step.
+
+With the word out, an updated LinkedIn, a refreshed blog and personal site and a new minty fresh resume: I started the search.
+
+## Getting the Word Out
+
+I have seen several people use twitter to announce they are looking for a new job. This wasn't for me as I was trying to come in under the radar. That and I don't exactly have a devout following. I started going to meetups and happy hours that I have long neglected. (Don't neglect meetups, attend them religiously!). When I mentioned that I was looking, I was met with curious faces and questions regarding the company I was at. In truth, I hadn't prepared well for this part. You should expect this, and consistently answer. These micro interactions are an important part of your search. You do not want to come across negative about your current position. You need to have a good answer as to why you are leaving otherwise it can taint a potential opportunity. The world is smaller than you imagine, so be professional.
+
+After a few verbal offerings, and 1 interesting startup pitch my confidence returned that I may actually be ready for a new endeavor. Convincing yourself is really the first step. Up until this point, I was only dipping my toes in the water. It took me getting out there and talking to my friends and colleagues to truly convince myself that I was making the right decision. I went all in.
+
+I created a profile on Hired, Indeed and applied online to interesting job searches I found on Indeed, AngelList, as well as directly to sites of companies I wanted to work for. It took a week to start getting offers on Hired. I never received anything useful from Indeed, and I gave up on AngelList early. My friends had given me some very solid connections for interesting jobs at interesting companies. What follows is a summary and take away from those interactions.
+
+## The Interviews
+
+If you haven't interviewed in a while, you need to practice. Remember, they are assessing you as a person that can get the job done. You are supposed to solve their problems, and create value. They have to want to work with you as much they want you to be able to fill the role.
+
+The first company I interviewed with consisted of a phone screen, a day on site, a behavioral interview from the team members, a technical interview, a code challenge and a code review.
+
+As long as you are not a liar, and can talk on the phone, you should be able to make it face to face. However, your mileage may vary. Getting onsite to that first interview was a little unnerving. Every little detail started to wash over me. Was I overdressed? (I always wear a sport jacket to interviews) Was the commute alright? Am I properly caffeinated? Will I be able to perform at the whiteboard? Do I really want to switch jobs?
+
+The first interview ended up going well, but did not result in an offer. There was no whiteboard, there were no trick questions. The coding challenge was applicable to the work that I would be expected to perform and it was constrained well for the time I was given to complete it. Afterwards we did a code review, and I think this is where my performance faltered. It was late afternoon, I had just completed a somewhat stressful code challenge and now it was time to receive criticism and answer follow-on questions. Be sure to know why you made the choices you made, and what implications those choices could have on your submission. In my case, I wrote tests with my code, and had answered all follow-on questions and pitfalls related to the problem. However, I was unable to quickly and easily understand where the scaling pain points of the code I wrote were going to arise. This was the most important part, and I blew it. This sunk my chances. Overall, it was a good experience, and I brushed up on my weaknesses.
+
+The next few interviews happened very close together and created a kind of blur. There was an overall common structure to most one of them. There would be a phone call. There would be an upfront coding challenge. There would be an onsite interview. After being onsite (usually 4 hours or more), it would typically take a week to get an offer on paper. After a while you see there is an art and a science that everyone has adopted. Interviewing is challenging and mentally exhausting. After the hard work, the benefits are a piece of paper with numbers written on it. This is your future, and the culmination of your efforts. This is why you did it.
+
+## Coding Challenges
+
+I want to dive a little bit into my thoughts on the ubiquity of a coding challenge today.
+
+The coding challenge is a "new" step in technical interviews. Conceptually it is a fantastic idea, however in practice I get the feeling that it is usually *not* being executed correctly. The purpose of a coding challenge is to test if you can actually write code. The theory of what it is attempting to acheive breaks down when the coding challenge is being used to test your capabilities to solve a puzzle. The coding challenge that is supposed to get you excited about the company ends up being an impolite form of busy work.
+
+I like solving puzzles: *for fun*. I would not want to earn a living solving puzzles. I like to write code that solves real world problems and creates value for it's users.
+
+One example coding challenge required solving 3 of 7 proposed problems. Each problem was a different *puzzle* to solve. The business of the company was related to cloud services and hosting. I do not have extensive exposure to the behind the scenes operations of this business sector, however I can fairly safely assume that they do not struggle with editing a string in place, triangulating a signal, traversing trees or printing out strings in new and fancy ways. Again, I could be wrong, and perhaps all of these puzzles are part of a larger foray into machine learning.
+
+To add insult to injury, the majority of coding challenges had estimated times to complete of 4 or more hours. This may seem small and trivial, but this is meant to be completed outside of your scheduled programming time. If you are like me, you probably have committments on your time outside of work as well. So getting 4 consecutive hours to focus on a puzzle challenge is not an exciting committment.
+
+At one point I had 5 different coding challenges to solve, each requiring an estimated minimum of 4 hours, some had over 8 hours for experienced developers anecdotally mentioned in the challenge. On top of the time to complete estimates, there was a countdown! Most gave a window of 36 to 48 hours to complete before you were not allowed to respond. This is jarring, and I think incredibly insane to ask of a candidate. My minimum time investment to complete all of these was 20 hours. So in order to put my best foot forward, I carefully selected the challenges that *I wanted* to complete. I looked at the challenge as a reflection of the company and it's cultural values. If they did not think the most important part of their business through (onboarding new employees), how could they have a strong handle of what happens afterwards?
+
+Of the 3 coding challenges that I chose to complete, I was outright rejected from 1 for failure to use a linter. Even though I solved the problem, included tests as well as wrote documentation for my solution. I was a little salty about that, but lesson learned.
+
+If you are going to require a candidate to complete a coding challenge, I would suggest the following:
+
+- Keep it small
+- Keep it relevant
+- Be flexible on time
+
+When I say keep it small, it should be something that someone can complete it under an hour, 2 max. The problem should be relevant to your business. You should simply have the candidate solve a distilled version of what you do. Finally, if you have to put a deadline on a code submission try and be flexible about it. See if that timeline works with the candidate, and accomodate if it doesn't. Remember, you are also setting the tone for how your company treats its employees.
+
+## The Trends
+
+Software is eating the world, and startups are everywhere. It's en vogue to "work for a scrappy startup" to "crush", "kill", and "disrupt". I am a huge fan of the entreprenuial spirit. Entreprenuers will work 80 hours a week to avoid working 40 hours a week for someone else.
+
+I found the common sentiment being rehashed: "We operate like a startup". This is incredibly interesting. It's as if the entire business world became enamoured with startup culture and they adopted some of the cultural peculiarities of working in a small business.
+
+### 1. Open Offices
+
+There are no private offices, and I did not see a single cubicle. Flash back to 2005 when I graduated college, and the open office concept *seemed interesting* and was only being done by edgy, creative companies. Now it's everywhere, and it's not going to change.
+
+To be clear, I am indifferent to an open office vs. a private office. I can work in the middle of a crowd. (I had to once in the middle of SXSW). I know that open offices really bother most engineers. I get it. Flow is magical and getting into flow requires concentration and focus. If you are attempting to reach a state of flow, distractions must cease to exist. Open offices are high energy, high distraction spaces. They increase collaboration and communication, but that comes at a cost to creative productivity.
+
+### 2. Cool Offices
+
+The office and it's space have become a selling point for the companies of today. The re-urbanization of America has pushed a lot of companies to take up shop in downtown offices. This requires an employee to consider alternative modes of transporation. It also makes the convenience of working at said "cool office" more interesting. Wanna get out of the office? Just go for a walk and grab a coffee at that new shop a few blocks down.
+
+It used to be a novelty to have snacks and a ping pong table in the office. Now, it's commonplace. The presence of food provided by the office has exploded.
+
+There seems to be a lot of talk and pressure to work in a "cool office" today. This is an interesting trend, as "cool offices" cost more. Perhaps the costs are offset by not having to build out dozens of private offices so it balances out.
+
+### 3. The Work Trends
+
+I've spent a lot of time talking about the fringe elements. If you are part of the tech world, you may be interested in the actual work trends that my search uncovered. I did notice the following commonalities:
+
+1. Breaking up the Monolith
+2. Lack of Senior Engineering Guidance
+3. Lack of Documentation
+4. Grew / Acquired too fast
+
+I have been using Ruby on Rails almost exclusively for the past 8 years. Rails allows one to solve most software problems in a defined way, and do so quickly. What happens after 4 years of a single Rails project is that it starts to break a little at the seams. This is NOT unique to Rails by the way, it has been happening in software for ages. You may hear stuff about "legacy systems". That's a fancy way of saying: "A project that made the company, but is now too big to change". Every single company I interviewed with (most were Rails, some used Django) had "breaking up the monolith" as a stated goal.
+
+Another peculiarity that I uncovered was the "need for Senior guidance". Commonly I heard references to hiring a lot of Juniors that only do Front End, or lack of mentorship and guidance. This makes me a little sad. Our craft is an apprenticeship, we can learn how to make good software from good mentors. There was one place at the extreme end of this need for Senior Guidance. They were composed of mostly pre-junior developers. Each was hammering out code, doing dev ops, self managing and rotating into different positions. This was extremely interesting but wasn't scaling. It is also extremely short sighted. You can save money and train engineers, however there is more to writing good software and learning about writing software than knowing how to code. I passed on that one. (I do hope they get someone in there to help out those folks, that unfortunately wasn't the challenge that I was looking for)
+
+I am certainly guilty of sparse documentation. Having been through quite a few doors and hearing this commonly uttered phrase, it makes me wonder if we have become plagued with this problem as an industry. We are encouraged to "ship" and "continuously integrate" and as long as our tests pass and our code reviews go well, we continue to keep moving. It seems that we are missing a crucial step, and that is to actually document how our creations work. There have always been inline code documentation tools, but I have yet to see us rally behind the requirement to use these tools. Maybe the tools themselves are not convenient enough, maybe we are lazy. Hopefully we wise up or make this painless, and this concern disappears.
+
+Finally, every startup that is successful eventually becomes a small/medium/large sized company. When these step functions occur, the current staff is left with a period of confusion about how to continue the growth. A lot of these thoughts center on how to scale both in concurrent usage as well as productivity. It's clear that we are not really good at identifying these "pauses" and planning for them.
+
+## Improvements
+
+I think there are a handful of improvements that we can apply universally to the interview process.
+
+1. Upfront Salary Expectations
+2. Relevant Coding Challenges
+3. Reduce Time Commitment
+4. Stop Following a Script
+
+Lets just get it out front right away, what are the Salary Expectations for the position? Everyone has a number in mind, no a Senior will not work for 50k, and no the employer is probably not going to swing 30% above market for your unique skill set. So what is the range for expectations, and lets save everyone a lot of time.
+
+If you are going to require a code challenge, make it small, make it relevant, and be flexible with the candidate on time. Good engineers are busy and think about cost vs. benefit, you are probably filtering out good productive engineers who don't think your puzzle is worth the time.
+
+Studies show that you make up your mind about a candidate within minutes of meeting them, regardless of aptitude or abilities. So why then are candidates forced to endure days interfacing with you when you already kind of know the outcome? Trust your intuitions, but don't let them command you. If something feels off, acknowledge it and move on to the next candidate. The same thing goes for the candidate.
+
+Finally, the process of interviewing almost feels scripted. We have all become indoctrinated with a "standard interview process". I personally feel that I can figure out if someone would be fun to work with over lunch, coffee or a beer. In that time, I can get a good sense of their knowledge and abilities, then I just need to see some work and hear from some references to back it up. Ask yourself this: Does this Senior Engineer that has 10+ years of programming experience really need to solve a puzzle just because it's your policy? Is there another way you can both save time and get to the final conclusion faster?
+
+As a candidate in the technology industy, don't sell yourself short, make sure you explore your options and make the decisions that are best for you.

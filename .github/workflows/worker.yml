@@ -1,0 +1,41 @@
+name: Worker
+
+on:
+  push:
+    paths:
+      - "workers/incident-simulator/**"
+      - ".github/workflows/worker.yml"
+  pull_request:
+    paths:
+      - "workers/incident-simulator/**"
+      - ".github/workflows/worker.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers/incident-simulator
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: workers/incident-simulator/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build UI
+        run: npm run build

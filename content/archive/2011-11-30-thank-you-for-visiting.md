@@ -1,0 +1,17 @@
+---
+categories:
+- general
+date: 2011-11-30T00:00:00Z
+title: Thank You for Visiting
+url: /2011/11/30/thank-you-for-visiting/
+---
+
+Im assuming that as of the writing of this, you arrived here in search of [Brandon Harris the wikipedia programmer](http://www.gaijin.com/).
+
+If you happen to be interested in some of the topics that I occasionally post here, please feel free to subscribe or follow me on twitter.
+
+Brandon did an [AMA on Reddit](http://www.reddit.com/r/IAmA/comments/mr4pf/i_am_wikipedia_programmer_brandon_harris_ama/)
+
+If you are looking to donate to wikipedia (please do!) [this is the link that you are looking for](https://donate.wikimedia.org/wiki/Special:FundraiserLandingPage?&template=Lp-layout-default&appeal-template=Appeal-template-default&appeal=Appeal-Brandon&form-template=Form-template-default&form-countryspecific=Form-countryspecific-control&utm_medium=sitenotice&utm_source=socialmedia&utm_campaign=C11_socialmedia_reddit)
+
+Thanks for visiting!
