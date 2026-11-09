@@ -1,7 +1,8 @@
 name = "connection-info"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
-workers_dev = false
+workers_dev = true
+preview_urls = false
 upload_source_maps = true
 
 [observability]

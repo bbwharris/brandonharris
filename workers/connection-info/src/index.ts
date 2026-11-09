@@ -78,6 +78,11 @@ async function route(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const pathname = url.pathname;
 
+  if (url.hostname.endsWith('.workers.dev')) {
+    const targetPath = pathname === '/' ? '/connection-info' : `${pathname}${url.search}`;
+    return redirectResponse(`https://info.brandon-harris.com${targetPath}`);
+  }
+
   if (request.headers.get('Sec-Fetch-Site') === 'cross-site') {
     return jsonResponse({ error: 'Forbidden' }, 403);
   }

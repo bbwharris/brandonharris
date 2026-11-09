@@ -20,8 +20,8 @@ The page is served at `https://info.brandon-harris.com/connection-info`.
   no-referrer, permissions policy, HSTS, and no-store on HTML/JSON.
 - The page uses external CSS/JS and DOM `textContent`; it does not render
   user-controlled values with `innerHTML`.
-- `workers_dev` is disabled; the worker is exposed only through the custom
-  domain.
+- `workers_dev` is enabled only as a redirect entrypoint; all workers.dev
+  requests redirect to the canonical custom domain.
 
 ## Development
 

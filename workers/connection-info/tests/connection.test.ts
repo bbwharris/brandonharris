@@ -154,6 +154,16 @@ describe('handleRequest', () => {
     expect(response.headers.get('Location')).toBe('/connection-info');
   });
 
+  it('redirects workers.dev requests to the custom domain', async () => {
+    const response = await handleRequest(
+      new Request('https://connection-info.bbwharris.workers.dev/connection-info'),
+      testEnv(),
+    );
+
+    expect(response.status).toBe(308);
+    expect(response.headers.get('Location')).toBe('https://info.brandon-harris.com/connection-info');
+  });
+
   it('serves the page and strips the body for HEAD', async () => {
     const page = await handleRequest(new Request('https://info.brandon-harris.com/connection-info'), testEnv());
     const head = await handleRequest(new Request('https://info.brandon-harris.com/connection-info', {
