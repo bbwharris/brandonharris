@@ -14,7 +14,7 @@ Simple card based layout showing information about your current network. I was t
 This is built with:
 - **Cloudflare Workers**: Edge computing platform
 
-{{< project-button href="https://cf-hello-world-workflow.bbwharris.workers.dev/connection-info" label="🌐 Check your Connection" >}}
+{{< project-button href="https://info.brandon-harris.com/connection-info" label="🌐 Check your Connection" >}}
 
 
 ---

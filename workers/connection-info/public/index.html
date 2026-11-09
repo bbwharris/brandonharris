@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Connection Info</title>
+	<meta name="description" content="Real-time details about your network connection.">
+	<meta name="theme-color" content="#0f172a">
+	<link rel="canonical" href="https://info.brandon-harris.com/connection-info">
+	<link rel="stylesheet" href="/connection-info.css">
+	<script src="/connection-info.js" defer></script>
+</head>
+<body>
+	<div class="container">
+		<header>
+			<h1>Connection Info</h1>
+			<p class="subtitle">Real-time details about your network connection</p>
+		</header>
+
+		<div id="content" aria-live="polite">
+			<div class="loading">
+				<div class="spinner"></div>
+			</div>
+		</div>
+
+		<div class="actions">
+			<button id="refresh" class="btn btn-primary" type="button">
+				<span aria-hidden="true">🔄</span> Refresh
+			</button>
+			<a href="https://brandon-harris.com/connection-info/" class="btn btn-secondary">
+				<span aria-hidden="true">🌐</span> Project
+			</a>
+		</div>
+
+		<noscript>
+			<p class="noscript">This page requires JavaScript.</p>
+		</noscript>
+	</div>
+</body>
+</html>

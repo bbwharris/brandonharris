@@ -1,0 +1,38 @@
+name: Connection Info
+
+on:
+  push:
+    paths:
+      - "workers/connection-info/**"
+      - ".github/workflows/connection-info.yml"
+  pull_request:
+    paths:
+      - "workers/connection-info/**"
+      - ".github/workflows/connection-info.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers/connection-info
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: workers/connection-info/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test

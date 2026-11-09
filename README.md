@@ -1,12 +1,12 @@
 # brandon-harris.com
 
-Personal site for Brandon Harris, built with Hugo and PaperMod, plus the
-incident-simulator Cloudflare Worker under `workers/`.
+Personal site for Brandon Harris, built with Hugo and PaperMod, plus Cloudflare
+Workers under `workers/`.
 
 ## Requirements
 
 - Hugo 0.169.0 extended (see `.hugoversion`)
-- Node.js 22.12+ for the worker and its React UI
+- Node.js 22.12+ for the workers and the simulator UI
 
 ## Site
 
@@ -28,7 +28,9 @@ Content lives in `content/`:
 - `archive/` — historical posts preserved at their original URLs
 - `about.md` — profile page
 
-## Worker
+## Workers
+
+### Incident simulator
 
 ```bash
 cd workers/incident-simulator
@@ -40,6 +42,20 @@ npm run dev
 
 The UI is built from `workers/incident-simulator/ui` and served by the worker.
 Deploy with `npm run deploy` after authenticating Wrangler.
+
+### Connection info
+
+```bash
+cd workers/connection-info
+npm ci
+npm run typecheck
+npm test
+npm run dev
+```
+
+Deploy with `npm run deploy`. The worker serves
+`https://info.brandon-harris.com/connection-info` and exposes only the
+sanitized `/api/connection-info` JSON endpoint.
 
 ## Theme
 

@@ -39,7 +39,8 @@ This site uses Hugo **0.169.0** (specified in `.hugoversion` and `.cloudflare/pa
 │   └── _redirects
 ├── themes/PaperMod/     # Hugo theme (do not modify)
 ├── workers/             # Cloudflare Worker projects
-│   └── incident-simulator/
+│   ├── incident-simulator/
+│   └── connection-info/
 └── .cloudflare/         # Cloudflare Pages config
 ```
 
@@ -145,6 +146,7 @@ hugo server && curl -s http://localhost:1313 | head
 
 # Worker checks
 cd workers/incident-simulator && npm run typecheck && npm test
+cd workers/connection-info && npm run typecheck && npm test
 
 # Check for broken links (requires external tool)
 # hugo server && linkchecker http://localhost:1313
