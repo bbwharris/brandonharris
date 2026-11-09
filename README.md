@@ -6,7 +6,7 @@ incident-simulator Cloudflare Worker under `workers/`.
 ## Requirements
 
 - Hugo 0.169.0 extended (see `.hugoversion`)
-- Node.js 20.19+ for the worker and its React UI
+- Node.js 22.12+ for the worker and its React UI
 
 ## Site
 

@@ -11,15 +11,15 @@
     "tail": "wrangler tail"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.12.0"
   },
   "dependencies": {
-    "agents": "^0.5.1"
+    "agents": "^0.33.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240201.0",
+    "@cloudflare/workers-types": "^5.20261109.1",
     "typescript": "^5.3.0",
-    "vitest": "^3.2.4",
-    "wrangler": "~4.67.0"
+    "vitest": "^5.1.0",
+    "wrangler": "^4.158.0"
   }
 }

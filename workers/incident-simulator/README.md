@@ -36,7 +36,7 @@ This simulator puts you in the role of an Incident Commander responding to a P0 
 
 ### Prerequisites
 
-- Node.js 20.19+ (required by Vite 7)
+- Node.js 22.12+ (required by Vitest 5 and Wrangler 4)
 - npm
 - Cloudflare account (for deployment)
 
