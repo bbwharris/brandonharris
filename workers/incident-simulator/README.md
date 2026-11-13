@@ -29,7 +29,7 @@ This simulator puts you in the role of an Incident Commander responding to a P0 
 - **Agents SDK**: Stateful WebSocket agents with Durable Objects
 - **Workers AI**: Llama 3.1 8B for the AI assistant
 - **SQLite**: State persistence via Durable Objects
-- **React 18**: Frontend UI
+- **React 19**: Frontend UI
 - **TypeScript**: Type safety throughout
 
 ## Development
