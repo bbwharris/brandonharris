@@ -84,7 +84,7 @@ function createCard(icon, title, rows, copyValue) {
 
 function createSpeedTestSection() {
 	const section = element('div', 'speed-test-section');
-	const link = element('a', 'speed-test-btn', '🚀 Run Speed Test');
+	const link = element('a', 'speed-test-btn', 'Run Speed Test');
 
 	link.href = 'https://speed.cloudflare.com';
 	link.target = '_blank';
