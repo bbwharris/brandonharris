@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Terminal from './Terminal';
 import Dashboard from './Dashboard';
 import Chat from './Chat';
+import SiteHeader from './SiteHeader';
 import './App.css';
 
 interface SecurityChecklistItem {
@@ -212,10 +213,20 @@ const App: React.FC = () => {
 
   return (
     <div className="app">
+      <SiteHeader />
+
       <header className="app-header">
-        <h1>🚨 Incident Response Simulator</h1>
-        <div className={`connection-status ${connected ? 'connected' : 'disconnected'}`}>
-          {connected ? '🟢 Connected' : '🔴 Disconnected'}
+        <div className="app-title">
+          <div className="breadcrumbs">
+            <a href="https://brandon-harris.com/">Home</a>&nbsp;»&nbsp;<a href="https://brandon-harris.com/projects/">Projects</a>
+          </div>
+          <h1>Incident Response Simulator</h1>
+        </div>
+        <div className="app-header-actions">
+          <a href="https://brandon-harris.com/incident-simulator/" className="button">About this project</a>
+          <div className={`connection-status ${connected ? 'connected' : 'disconnected'}`}>
+            {connected ? 'Connected' : 'Disconnected'}
+          </div>
         </div>
       </header>
 
@@ -243,10 +254,11 @@ const App: React.FC = () => {
       </div>
 
       <footer className="app-footer">
-        <button onClick={resetSimulation} className="reset-btn">
-          🔄 Reset Simulation
+        <button type="button" onClick={resetSimulation} className="button">
+          Reset Simulation
         </button>
         <span>Press Tab to switch between terminal and chat</span>
+        <span>&copy; 2026 <a href="https://brandon-harris.com/">Brandon Harris</a></span>
       </footer>
     </div>
   );

@@ -52,21 +52,21 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected, typingS
   };
 
   const getMessageRoleDisplay = (message: Message) => {
-    if (message.role === 'user') return { icon: '👤', label: 'You', color: '#58a6ff' };
-    if (message.role === 'system') return { icon: '🤖', label: 'System', color: '#8b949e' };
+    if (message.role === 'user') return { icon: '👤', label: 'You', color: 'var(--accent)' };
+    if (message.role === 'system') return { icon: '🤖', label: 'System', color: 'var(--secondary)' };
 
     // Use explicit persona field if available, otherwise fall back to content detection
     const persona = message.persona || detectPersona(message.content);
     if (persona === 'security') {
-      return { icon: '🔒', label: 'Security', color: '#8957e5' };
+      return { icon: '🔒', label: 'Security', color: 'var(--security)' };
     }
-    return { icon: '👨‍💻', label: 'SRE', color: '#3fb950' };
+    return { icon: '👨‍💻', label: 'SRE', color: 'var(--sre)' };
   };
 
   return (
     <div className="chat">
       <div className="chat-header">
-        <span className="chat-title">💬 Team Chat</span>
+        <span className="chat-title">Team Chat</span>
         <span className="chat-status">
           {connected ? 'Online' : 'Offline'}
         </span>
@@ -112,19 +112,19 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected, typingS
         {typingState?.isTyping && (
           <div 
             className="chat-message assistant typing-indicator" 
-            style={{ borderLeft: `3px solid ${typingState.persona === 'security' ? '#8957e5' : '#3fb950'}` }}
+            style={{ borderLeft: `3px solid ${typingState.persona === 'security' ? 'var(--security)' : 'var(--sre)'}` }}
           >
             <div className="message-header">
               <span
                 className="message-role"
-                style={{ color: typingState.persona === 'security' ? '#8957e5' : '#3fb950' }}
+                style={{ color: typingState.persona === 'security' ? 'var(--security)' : 'var(--sre)' }}
               >
                 {typingState.persona === 'security' ? '🔒 Security' : '👨‍💻 SRE'} is typing
               </span>
             </div>
             <div 
               className="message-content"
-              style={{ color: typingState.persona === 'security' ? '#8957e5' : '#3fb950' }}
+              style={{ color: typingState.persona === 'security' ? 'var(--security)' : 'var(--sre)' }}
             >
               <div className="typing-animation">
                 <span></span>

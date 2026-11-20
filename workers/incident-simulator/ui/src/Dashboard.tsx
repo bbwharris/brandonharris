@@ -116,7 +116,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state }) => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h3>📊 Dashboard</h3>
+        <h3>Dashboard</h3>
       </div>
 
       <div className="dashboard-content">
@@ -234,13 +234,6 @@ const Dashboard: React.FC<DashboardProps> = ({ state }) => {
                     <div className="progress-bar-container" style={{ marginTop: '4px' }}>
                       <div
                         className="progress-bar"
-                        style={{
-                          width: '100%',
-                          height: '6px',
-                          backgroundColor: '#30363d',
-                          borderRadius: '3px',
-                          overflow: 'hidden'
-                        }}
                       >
                         <div
                           style={{
@@ -251,7 +244,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state }) => {
                           }}
                         />
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: '#8b949e', marginTop: '2px' }}>
+                      <div className="patch-note" style={{ fontSize: '0.7rem', marginTop: '2px' }}>
                         {patchProgress}%
                       </div>
                     </div>
@@ -259,7 +252,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state }) => {
 
                   {/* Security verification progress */}
                   {workflowState === 'security_review' && securityItems.length > 0 && (
-                    <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '4px' }}>
+                    <div className="patch-note">
                       Security: {securityItems.filter(i => i.verified).length}/{securityItems.length} verified
                     </div>
                   )}
@@ -268,7 +261,7 @@ const Dashboard: React.FC<DashboardProps> = ({ state }) => {
                   {(workflowState === 'patch_failed' || workflowState === 'ready_to_patch') && failureCount > 0 && (
                     <div style={{ 
                       fontSize: '0.75rem', 
-                      color: failureCount >= 2 ? '#3fb950' : '#f0883e', 
+                      color: failureCount >= 2 ? 'var(--success)' : 'var(--warning)', 
                       marginTop: '4px',
                       fontWeight: 'bold'
                     }}>

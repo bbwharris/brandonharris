@@ -66,7 +66,7 @@ const Terminal: React.FC<TerminalProps> = ({ output, onCommand, connected }) => 
   return (
     <div className="terminal">
       <div className="terminal-header">
-        <span className="terminal-title">🖥️  Terminal</span>
+        <span className="terminal-title">Terminal</span>
         <span className="terminal-status">
           {connected ? 'Ready' : 'Offline'}
         </span>

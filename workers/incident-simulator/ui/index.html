@@ -1,22 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Incident Response Simulator</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: #0d1117;
-        color: #c9d1d9;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-      }
-      * {
-        box-sizing: border-box;
-      }
-    </style>
+    <meta name="theme-color" content="#0b1220" />
+    <title>Incident Response Simulator | Brandon Harris</title>
+    <script>
+      (function () {
+        var theme = null;
+        try {
+          theme = localStorage.getItem('pref-theme');
+        } catch (error) {
+          theme = null;
+        }
+        if (theme !== 'dark' && theme !== 'light') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

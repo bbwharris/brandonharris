@@ -1,0 +1,180 @@
+/* Mirrors the PaperMod theme used on brandon-harris.com. */
+
+:root {
+  --gap: 24px;
+  --header-height: 60px;
+  --radius: 8px;
+  --theme: rgb(255, 255, 255);
+  --entry: rgb(255, 255, 255);
+  --panel: rgb(245, 245, 245);
+  --primary: rgb(30, 30, 30);
+  --secondary: rgb(108, 108, 108);
+  --tertiary: rgb(214, 214, 214);
+  --content: rgb(31, 31, 31);
+  --border: rgb(238, 238, 238);
+  --terminal-bg: rgb(28, 29, 33);
+  --terminal-header: rgb(46, 46, 51);
+  --terminal-text: rgb(218, 218, 219);
+  --terminal-muted: rgb(155, 156, 157);
+  --success: rgb(22, 128, 61);
+  --warning: rgb(194, 65, 12);
+  --danger: rgb(185, 28, 28);
+  --accent: rgb(37, 99, 235);
+  --sre: rgb(22, 128, 61);
+  --security: rgb(124, 58, 237);
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --mono: Menlo, Monaco, 'Courier New', Courier, monospace;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --theme: rgb(29, 30, 32);
+  --entry: rgb(46, 46, 51);
+  --panel: rgb(29, 30, 32);
+  --primary: rgb(218, 218, 219);
+  --secondary: rgb(155, 156, 157);
+  --tertiary: rgb(65, 66, 68);
+  --content: rgb(196, 196, 197);
+  --border: rgb(51, 51, 51);
+  --terminal-bg: rgb(22, 23, 25);
+  --terminal-header: rgb(46, 46, 51);
+  --success: rgb(74, 222, 128);
+  --warning: rgb(251, 146, 60);
+  --danger: rgb(248, 113, 113);
+  --accent: rgb(96, 165, 250);
+  --sre: rgb(63, 185, 80);
+  --security: rgb(167, 139, 250);
+  color-scheme: dark;
+}
+
+*,
+::after,
+::before {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--primary);
+  background: var(--theme);
+  -webkit-tap-highlight-color: transparent;
+}
+
+a,
+button {
+  color: var(--primary);
+}
+
+a {
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+}
+
+/* Site header */
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  line-height: var(--header-height);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav a {
+  display: block;
+}
+
+.logo,
+#menu {
+  display: flex;
+  margin: auto var(--gap);
+}
+
+.logo {
+  flex-wrap: inherit;
+}
+
+.logo a {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.logo a img {
+  display: inline;
+  vertical-align: middle;
+  pointer-events: none;
+  transform: translate(0, -10%);
+  border-radius: 6px;
+  margin-inline-end: 8px;
+}
+
+.logo-switches {
+  display: inline-flex;
+  flex-wrap: inherit;
+  margin: auto 4px;
+}
+
+button#theme-toggle {
+  margin: auto 4px;
+  padding: 0;
+  font-size: 26px;
+  background: 0 0;
+  border: 0;
+  cursor: pointer;
+}
+
+[data-theme="dark"] #moon,
+[data-theme="light"] #sun {
+  display: none;
+}
+
+#menu {
+  list-style: none;
+  margin-block: 0;
+  padding: 0;
+  word-break: keep-all;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+#menu li + li {
+  margin-inline-start: var(--gap);
+}
+
+#menu a {
+  font-size: 16px;
+}
+
+#menu .active {
+  font-weight: 500;
+  border-bottom: 2px solid currentColor;
+}
+
+/* Scrollbars */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
