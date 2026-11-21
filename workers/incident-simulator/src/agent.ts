@@ -45,7 +45,6 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
   private readonly TIME_ACCELERATION = 10;
   private readonly TICK_INTERVAL = 5000; // 5 seconds real time
   private tickInterval?: ReturnType<typeof setInterval>;
-  private ownerConnectionId?: string;
   private readonly messageWindows = new Map<string, number[]>();
   
   async onRequest(request: Request): Promise<Response> {
@@ -76,8 +75,6 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
   async onConnect(connection: Connection) {
     console.log(`Client connected: ${connection.id}`);
 
-    this.ownerConnectionId ??= connection.id;
-
     // Start the simulation tick
     this.startSimulation();
     
@@ -93,10 +90,6 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
     console.log(`Client disconnected: ${connection.id}`);
 
     this.messageWindows.delete(connection.id);
-
-    if (this.ownerConnectionId === connection.id) {
-      this.ownerConnectionId = Array.from(this.getConnections()).find((client) => client.id !== connection.id)?.id;
-    }
 
     // Stop simulation if no more connections
     const connections = Array.from(this.getConnections());
@@ -158,11 +151,6 @@ export class IncidentAgent extends Agent<Env, IncidentState> {
             result = this.getState();
             break;
           case 'reset':
-            if (this.ownerConnectionId && connection.id !== this.ownerConnectionId) {
-              result = { success: false, error: 'Only the session owner can reset the simulation.' };
-              break;
-            }
-
             this.reset();
             result = { success: true };
             break;
@@ -566,6 +554,13 @@ I have detected some unusual patterns that require investigation.`);
         break;
       case 'resolve':
         result = await this.handleResolveCommand();
+        break;
+      case 'reset':
+        this.reset();
+        result = {
+          success: true,
+          output: 'Simulation reset. Welcome back, Commander.',
+        };
         break;
       case 'hint':
         result = tools.getHint();
@@ -1825,6 +1820,7 @@ RESPONSE ACTIONS
 ASSISTANCE
   hint                      Get contextual guidance
   help                      Show this help message
+  reset                     Restart the simulation
 
 AVAILABLE PATCH VERSIONS
   6.5.0-9-hotfix            Critical security patch for CVE-2024-8765

@@ -6,6 +6,8 @@ An interactive simulation of a critical infrastructure incident response scenari
 
 This simulator puts you in the role of an Incident Commander responding to a P0 kernel vulnerability (CVE-2024-8765) affecting 847 edge servers across 5 global regions. You'll diagnose the issue, assess the blast radius, and coordinate the patching response.
 
+Each browser tab gets its own Durable Object session, so one visitor's reset does not affect another visitor's simulation.
+
 ## Architecture
 
 ```

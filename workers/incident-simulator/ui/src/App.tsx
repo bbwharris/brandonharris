@@ -45,9 +45,24 @@ interface IncidentState {
   regionWorkflows: Record<string, RegionWorkflow>;
 }
 
-const WS_URL = import.meta.env.DEV 
+const SESSION_KEY = 'incident-simulator-session';
+
+function getSessionId(): string {
+  try {
+    const existing = sessionStorage.getItem(SESSION_KEY);
+    if (existing) return existing;
+
+    const id = crypto.randomUUID();
+    sessionStorage.setItem(SESSION_KEY, id);
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
+const WS_URL = import.meta.env.DEV
   ? 'ws://localhost:8787/agents/incident-agent/session'
-  : 'wss://agents.brandon-harris.com/agents/incident-agent/session';
+  : `wss://agents.brandon-harris.com/agents/incident-agent/${getSessionId()}/session`;
 
 const App: React.FC = () => {
   const [connected, setConnected] = useState(false);
@@ -110,6 +125,8 @@ const App: React.FC = () => {
           case 'response':
             if (data.result && data.result.output) {
               addToTerminal(data.result.output);
+            } else if (data.result && data.result.error) {
+              addToTerminal(`❌ ${data.result.error}`);
             }
             break;
           // Ignore internal SDK messages
