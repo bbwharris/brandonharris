@@ -205,30 +205,35 @@ Access at `http://localhost:8787`
 Once the simulator is running, you can use these commands in the terminal:
 
 ### Status & Monitoring
-- `status` - Show current incident status and metrics
+- `status` - Show current incident status and region workflow states
 - `metrics [service]` - View metrics (overview, edge, kernel, security)
-- `logs <service> [timeframe]` - View logs (edge, kernel, security, all)
-- `regions` - Show status of all regions
+- `logs <service> [minutes]` - View logs (edge, kernel, security, all)
+- `regions` - Show detailed status of all regions
+- `patches` - List available kernel patch versions
 
 ### Response Actions
-- `patch <region>` - Initiate kernel patch (us-east, us-west, eu-west, eu-central, apac)
-- `rollback <region>` - Rollback patch in a region
-- `alert <team> <msg>` - Send alert (sre, security, leadership, customers, all)
+- `alert sre <region>` - Request SRE investigation for a region
+- `patch <region> <version>` - Apply specific kernel patch version to a region
+- `rollback <region>` - Rollback a failed or wrong patch in a region
+- `alert security` - Initiate post-patch security audit (after all regions are patched)
+- `verify <region>` - Verify security checklist items for a region
+- `resolve` - Confirm stability with SRE and close the incident
 
 ### Assistance
 - `hint` - Get contextual guidance based on current phase
-- `query <question>` - Ask the on-call engineer AI assistant
 - `help` - Show all available commands
 - `reset` - Restart the simulation
 
 ### Examples
 
 ```bash
-$ metrics edge
-$ logs kernel 60
-$ patch us-east
-$ alert sre "Patch initiated in us-east"
-$ query "What's the CVSS score for this CVE?"
+$ alert sre us-east
+$ patches
+$ patch us-east 6.5.0-9-hotfix
+$ rollback us-east
+$ alert security
+$ verify us-east
+$ resolve
 ```
 
 ## Incident Scenario
@@ -260,26 +265,42 @@ The on-call engineer AI is powered by Llama 3.1 running on Cloudflare Workers AI
 ```
 workers/incident-simulator/
 ├── src/
-│   ├── agent.ts          # Main IncidentAgent class
-│   ├── tools.ts          # Command implementations
-│   ├── scenario.ts       # Incident definition and logs
-│   ├── scenario.test.ts  # Scenario unit tests
-│   ├── types.ts          # TypeScript interfaces
-│   ├── index.ts          # Worker entry point
-│   └── env.d.ts          # Environment type definitions
+│   ├── agent.ts            # IncidentAgent Durable Object class
+│   ├── prompts.ts          # LLM prompt builders, fallbacks, welcome/help text
+│   ├── simulation.ts       # Pure workflow progression, metrics, phase logic
+│   ├── security.ts         # Worker fetch routing, CORS, rate limit, security headers
+│   ├── tools.ts            # Terminal command formatting and read-only tools
+│   ├── scenario.ts         # Incident definition, patch versions, and logs
+│   ├── *.test.ts           # Vitest unit tests
+│   ├── types.ts            # TypeScript interfaces
+│   ├── index.ts            # Worker entry point
+│   └── env.d.ts            # Environment type definitions
 ├── ui/
+│   ├── public/
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon.svg
+│   │   └── theme.js        # Early light/dark theme initialization
 │   ├── src/
-│   │   ├── App.tsx       # Main React component
-│   │   ├── Terminal.tsx  # Terminal interface
-│   │   ├── Dashboard.tsx # Metrics dashboard
-│   │   ├── Chat.tsx      # AI chat interface
-│   │   └── main.tsx      # React entry point
-│   ├── index.html        # HTML template
-│   └── vite.config.ts    # Vite configuration
-├── wrangler.toml         # Worker configuration
-├── package.json          # Worker dependencies
-└── README.md            # This file
+│   │   ├── App.tsx         # Main React component
+│   │   ├── SiteHeader.tsx  # Shared brandon-harris.com header and theme toggle
+│   │   ├── Terminal.tsx    # Terminal interface
+│   │   ├── Dashboard.tsx   # Metrics dashboard
+│   │   ├── Chat.tsx        # AI chat interface
+│   │   ├── theme.css       # PaperMod-compatible theme tokens
+│   │   └── main.tsx        # React entry point
+│   ├── index.html          # HTML template
+│   └── vite.config.ts      # Vite configuration
+├── wrangler.toml           # Worker configuration
+├── package.json            # Worker dependencies
+└── README.md               # This file
 ```
+
+## Security
+
+- Strict CSP (`script-src 'self'`), `X-Frame-Options: DENY`, `nosniff`, `no-referrer`, `Permissions-Policy`, HSTS, and `X-Robots-Tag: noindex, nofollow` on HTTP responses.
+- IP-level Cloudflare Rate Limiting binding (`INCIDENT_RATE_LIMIT`, 60 req/60s) on `/agents/*` plus per-connection WebSocket message throttling (30 msg/min).
+- `*.workers.dev` requests redirect to `https://agents.brandon-harris.com/incident/`.
+- HTTP health checks (`onRequest`) do not expose internal simulation state.
 
 ## Deployment
 
@@ -373,44 +394,20 @@ Then deploy again: `npx wrangler deploy`
 
 ### Hugo Integration
 
-The simulator is embedded in the Hugo site via an iframe:
-
-```html
-<iframe 
-  src="https://agents.brandon-harris.com/incident" 
-  width="100%" 
-  height="800px"
-></iframe>
-```
+The simulator is linked from `content/projects/incident-simulator.md` via the `project-button` shortcode to `https://agents.brandon-harris.com/incident/`.
 
 ## Configuration
 
-### wrangler.toml
-
-```toml
-name = "incident-simulator"
-main = "src/index.ts"
-compatibility_date = "2024-02-01"
-
-[[durable_objects.bindings]]
-name = "IncidentAgent"
-class_name = "IncidentAgent"
-
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["IncidentAgent"]
-
-[ai]
-binding = "AI"
-```
+See `wrangler.toml` for the authoritative Worker, Assets, Durable Object, Workers AI, Rate Limiting, and Custom Domain configuration.
 
 ### Customization
 
 You can customize the simulation by editing:
 
 - `src/scenario.ts`: CVE details, regions, log messages, hints
-- `src/agent.ts`: Simulation parameters (time acceleration, tick interval)
-- `src/tools.ts`: Command behavior and responses
+- `src/simulation.ts`: Workflow progression, metrics, affected server counts, phase transitions
+- `src/prompts.ts`: SRE & Security AI prompts, fallbacks, welcome banner, and help text
+- `src/tools.ts`: Command formatting and read-only queries
 
 ## Troubleshooting
 
@@ -474,10 +471,6 @@ The simulation uses SQLite via Durable Objects. Ensure:
 - [Cloudflare Agents SDK](https://developers.cloudflare.com/agents/)
 - [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/)
 - [CISA Secure-By-Design Pledge](https://www.cisa.gov/securebydesign)
-
-## License
-
-MIT - See LICENSE file in repository root
 
 ## Author
 

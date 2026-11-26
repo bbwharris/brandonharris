@@ -26,7 +26,9 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: workers/incident-simulator/package-lock.json
+          cache-dependency-path: |
+            workers/incident-simulator/package-lock.json
+            workers/incident-simulator/ui/package-lock.json
 
       - name: Install
         run: npm ci
@@ -39,3 +41,6 @@ jobs:
 
       - name: Build UI
         run: npm run build
+
+      - name: Dry-run deploy
+        run: npx wrangler deploy --dry-run --outdir /tmp/incident-simulator-dryrun

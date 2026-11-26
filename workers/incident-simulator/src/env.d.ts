@@ -1,7 +1,10 @@
+import type { IncidentAgent } from './agent';
+
 export interface Env {
   IncidentAgent: DurableObjectNamespace<IncidentAgent>;
   AI: Ai;
-  ASSETS: Fetcher;
+  ASSETS?: Fetcher;
+  INCIDENT_RATE_LIMIT?: RateLimit;
 }
 
 export interface Ai {

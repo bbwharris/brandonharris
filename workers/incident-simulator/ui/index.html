@@ -2,25 +2,12 @@
 <html lang="en" data-theme="auto">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/incident/favicon.svg" />
+    <link rel="apple-touch-icon" href="/incident/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b1220" />
     <title>Incident Response Simulator | Brandon Harris</title>
-    <script>
-      (function () {
-        var theme = null;
-        try {
-          theme = localStorage.getItem('pref-theme');
-        } catch (error) {
-          theme = null;
-        }
-        if (theme !== 'dark' && theme !== 'light') {
-          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        document.documentElement.dataset.theme = theme;
-      })();
-    </script>
+    <script src="/incident/theme.js"></script>
   </head>
   <body>
     <div id="root"></div>

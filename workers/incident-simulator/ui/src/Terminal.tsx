@@ -5,13 +5,16 @@ interface TerminalProps {
   output: string[];
   onCommand: (command: string, args: string[]) => void;
   connected: boolean;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+  onSwitchFocus?: () => void;
 }
 
-const Terminal: React.FC<TerminalProps> = ({ output, onCommand, connected }) => {
+const Terminal: React.FC<TerminalProps> = ({ output, onCommand, connected, inputRef: externalInputRef, onSwitchFocus }) => {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const internalInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = externalInputRef ?? internalInputRef;
   const outputRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when output changes
@@ -24,13 +27,13 @@ const Terminal: React.FC<TerminalProps> = ({ output, onCommand, connected }) => 
   // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
-  }, []);
+  }, [inputRef]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || !connected) return;
 
-    const parts = input.trim().split(' ');
+    const parts = input.trim().split(/\s+/);
     const command = parts[0];
     const args = parts.slice(1);
 
@@ -43,6 +46,12 @@ const Terminal: React.FC<TerminalProps> = ({ output, onCommand, connected }) => 
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && !e.shiftKey && onSwitchFocus) {
+      e.preventDefault();
+      onSwitchFocus();
+      return;
+    }
+
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (history.length > 0 && historyIndex < history.length - 1) {

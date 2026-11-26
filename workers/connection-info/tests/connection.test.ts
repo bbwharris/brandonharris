@@ -111,17 +111,41 @@ describe('handleRequest', () => {
     expect(body.ip).toBe('203.0.113.7');
   });
 
-  it('rejects cross-site and disallowed-origin requests', async () => {
-    const crossSite = await handleRequest(new Request('https://info.brandon-harris.com/api/connection-info', {
+  it('rejects cross-site API/subresource and disallowed-origin requests', async () => {
+    const crossSiteApi = await handleRequest(new Request('https://info.brandon-harris.com/api/connection-info', {
       headers: { 'Sec-Fetch-Site': 'cross-site' },
+    }), testEnv());
+
+    const crossSiteApiNav = await handleRequest(new Request('https://info.brandon-harris.com/api/connection-info', {
+      headers: { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'navigate' },
+    }), testEnv());
+
+    const crossSiteAsset = await handleRequest(new Request('https://info.brandon-harris.com/connection-info.js', {
+      headers: { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'no-cors' },
     }), testEnv());
 
     const badOrigin = await handleRequest(new Request('https://info.brandon-harris.com/api/connection-info', {
       headers: { Origin: 'https://evil.example' },
     }), testEnv());
 
-    expect(crossSite.status).toBe(403);
+    expect(crossSiteApi.status).toBe(403);
+    expect(crossSiteApiNav.status).toBe(403);
+    expect(crossSiteAsset.status).toBe(403);
     expect(badOrigin.status).toBe(403);
+  });
+
+  it('allows top-level cross-site navigations to the page and root redirect', async () => {
+    const page = await handleRequest(new Request('https://info.brandon-harris.com/connection-info', {
+      headers: { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document' },
+    }), testEnv());
+
+    const root = await handleRequest(new Request('https://info.brandon-harris.com/', {
+      headers: { 'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document' },
+    }), testEnv());
+
+    expect(page.status).toBe(200);
+    expect(root.status).toBe(308);
+    expect(root.headers.get('Location')).toBe('/connection-info');
   });
 
   it('rate limits API requests', async () => {

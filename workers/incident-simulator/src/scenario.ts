@@ -129,58 +129,72 @@ export function createInitialState(): Omit<IncidentState, 'simTime' | 'realStart
 }
 
 export function getLogMessages(service: string, region: string, timeframe: string): LogEntry[] {
-  const logs: LogEntry[] = [];
+  const logs: Array<LogEntry & { ageMinutes: number }> = [];
   const now = new Date();
-  const timeframeMinutes = parseInt(timeframe) || 30;
-  
+  const parsedTimeframe = Number.parseInt(timeframe, 10);
+  const timeframeMinutes = Number.isFinite(parsedTimeframe) && parsedTimeframe > 0 ? parsedTimeframe : 30;
+  const resolveRegion = (fallback: string): string => (region === 'all' ? fallback : region);
+
   // Generate realistic-looking logs based on service and region
-  if (service === 'kernel' || service === 'system') {
+  if (service === 'kernel' || service === 'system' || service === 'all') {
+    const kernelRegion = resolveRegion('us-east');
+    const syscallRegion = resolveRegion('eu-west');
     logs.push({
+      ageMinutes: 15,
       timestamp: new Date(now.getTime() - 15 * 60000).toISOString(),
       level: 'ERROR',
       service: 'kernel',
-      region,
-      message: `Kernel panic in ${region}: general protection fault at ip:ffff9f8b4c2d8a22`,
+      region: kernelRegion,
+      message: `Kernel panic in ${kernelRegion}: general protection fault at ip:ffff9f8b4c2d8a22`,
     });
     logs.push({
+      ageMinutes: 18,
       timestamp: new Date(now.getTime() - 18 * 60000).toISOString(),
       level: 'WARN',
       service: 'kernel',
-      region,
-      message: `Unexpected system call pattern detected on 3 nodes in ${region}`,
+      region: syscallRegion,
+      message: `Unexpected system call pattern detected on 3 nodes in ${syscallRegion}`,
     });
   }
-  
+
   if (service === 'edge' || service === 'all') {
+    const edgeRegion = resolveRegion('us-west');
+    const poolRegion = resolveRegion('apac');
     logs.push({
+      ageMinutes: 5,
       timestamp: new Date(now.getTime() - 5 * 60000).toISOString(),
       level: 'WARN',
       service: 'edge-proxy',
-      region,
-      message: `Elevated 5xx error rate in ${region}: 2.4% (threshold: 1.0%)`,
+      region: edgeRegion,
+      message: `Elevated 5xx error rate in ${edgeRegion}: 2.4% (threshold: 1.0%)`,
     });
     logs.push({
+      ageMinutes: 8,
       timestamp: new Date(now.getTime() - 8 * 60000).toISOString(),
       level: 'INFO',
       service: 'edge-proxy',
-      region,
-      message: `Connection pool saturation detected in ${region}`,
+      region: poolRegion,
+      message: `Connection pool saturation detected in ${poolRegion}`,
     });
   }
-  
+
   if (service === 'security' || service === 'all') {
+    const secRegion = resolveRegion('eu-central');
     logs.push({
+      ageMinutes: 25,
       timestamp: new Date(now.getTime() - 25 * 60000).toISOString(),
       level: 'WARN',
       service: 'security-monitor',
-      region,
-      message: `Suspicious network activity pattern matched CVE-2024-8765 signature in ${region}`,
+      region: secRegion,
+      message: `Suspicious network activity pattern matched CVE-2024-8765 signature in ${secRegion}`,
     });
   }
-  
-  return logs.slice(0, 10).sort((a, b) => 
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+
+  return logs
+    .filter((entry) => entry.ageMinutes <= timeframeMinutes)
+    .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
+    .slice(0, 10)
+    .map(({ ageMinutes: _ageMinutes, ...entry }) => entry);
 }
 
 export const HINTS = {

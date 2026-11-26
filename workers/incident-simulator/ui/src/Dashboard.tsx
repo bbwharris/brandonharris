@@ -100,9 +100,13 @@ const Dashboard: React.FC<DashboardProps> = ({ state }) => {
   };
 
   const workflows = safeState.regionWorkflows;
+  const patchedCount = Object.values(workflows).filter(
+    (w) => w && (w.state === 'security_review' || w.state === 'verified' || (w.state === 'patched' && w.patchVersion === w.requiredPatch)),
+  ).length;
+  const totalRegions = Math.max(1, Object.keys(workflows).length);
   const healthScore = Math.max(0, Math.min(100, Math.round(
     70 +
-    (Object.values(workflows).filter(w => w?.state === 'patched' || w?.state === 'security_review' || w?.state === 'verified').length / 5) * 30 -
+    (patchedCount / totalRegions) * 30 -
     safeState.errorRate * 5
   )));
 

@@ -10,7 +10,7 @@ The page is served at `https://info.brandon-harris.com/connection-info`.
 
 - GET/HEAD only; all other methods return 405.
 - Same-origin API; no CORS headers are emitted.
-- Cross-site and disallowed-origin requests return 403.
+- Cross-site API/subresource requests and disallowed-origin requests return 403; top-level page navigations are allowed.
 - API responses use Cloudflare's Rate Limiting binding (30 requests per 60
   seconds per client IP, approximate per Cloudflare location).
 - Inputs are limited and sanitized before being returned.

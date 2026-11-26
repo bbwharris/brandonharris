@@ -36,3 +36,6 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Dry-run deploy
+        run: npx wrangler deploy --dry-run --outdir /tmp/connection-info-dryrun

@@ -430,7 +430,7 @@ button#theme-toggle {
 	border-bottom-color: var(--primary);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 600px) {
 	.info-grid {
 		grid-template-columns: 1fr;
 	}

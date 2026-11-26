@@ -1,9 +1,6 @@
 ---
 title: "About"
 description: "Brandon Harris"
-aliases:
-  - about-us
-  - contact
 author: "Brandon Harris"
 ---
 

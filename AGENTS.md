@@ -86,17 +86,11 @@ aliases:
 - Quote all string values
 - 4-space indentation for nested structures
 
-### CSS (static/stylesheets/)
+### Workers (`workers/`)
 
-- Use lowercase with hyphens for class names
-- Organize by component/section
-- Minimize custom CSS (theme handles most styling)
-
-### JavaScript (static/javascripts/)
-
-- ES5 compatible (no modern syntax)
-- jQuery is available (loaded globally)
-- Place custom scripts in `static/javascripts/`
+- TypeScript with strict mode enabled (`npm run typecheck`)
+- Unit tests via Vitest (`npm test`)
+- Worker UIs mirror the site's PaperMod light/dark theme tokens and header navigation
 
 ## Theme: PaperMod
 

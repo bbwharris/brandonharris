@@ -52,6 +52,15 @@ describe('scenario', () => {
     expect(timestamps).toEqual([...timestamps].sort((a, b) => b - a));
   });
 
+  it('filters logs by timeframe and maps "all" region to real regions', () => {
+    const recentLogs = getLogMessages('all', 'all', '10');
+    const regionNames = REGIONS.map((r) => r.name);
+
+    expect(recentLogs.length).toBeGreaterThan(0);
+    expect(recentLogs.every((log) => regionNames.includes(log.region))).toBe(true);
+    expect(recentLogs.every((log) => log.service === 'edge-proxy')).toBe(true);
+  });
+
   it('returns no logs for an unknown service', () => {
     expect(getLogMessages('unknown', 'us-east', '30')).toEqual([]);
   });

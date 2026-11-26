@@ -130,3 +130,35 @@
 .button:active {
   transform: scale(0.96);
 }
+
+@media (max-width: 1024px) {
+  .app {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .app-content {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 360px;
+  }
+
+  .sidebar.right {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-bottom: none;
+    min-height: 320px;
+    max-height: 440px;
+  }
+
+  .main-content {
+    min-height: 380px;
+    max-height: 520px;
+  }
+}

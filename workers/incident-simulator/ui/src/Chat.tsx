@@ -14,6 +14,8 @@ interface ChatProps {
   onSendMessage: (content: string) => void;
   connected: boolean;
   typingState?: { isTyping: boolean; persona: string | null };
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+  onSwitchFocus?: () => void;
 }
 
 const detectPersona = (content: string): 'sre' | 'security' | null => {
@@ -26,10 +28,11 @@ const detectPersona = (content: string): 'sre' | 'security' | null => {
   return null;
 };
 
-const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected, typingState }) => {
+const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected, typingState, inputRef: externalInputRef, onSwitchFocus }) => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const internalInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = externalInputRef ?? internalInputRef;
 
   // Auto-scroll to bottom when messages or typing state changes
   useEffect(() => {
@@ -145,6 +148,12 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, connected, typingS
           className="chat-input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Tab' && !e.shiftKey && onSwitchFocus) {
+              e.preventDefault();
+              onSwitchFocus();
+            }
+          }}
           placeholder={connected ? "Ask a question..." : "Connecting..."}
           disabled={!connected}
           autoComplete="off"

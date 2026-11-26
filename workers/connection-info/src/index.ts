@@ -83,7 +83,11 @@ async function route(request: Request, env: Env): Promise<Response> {
     return redirectResponse(`https://info.brandon-harris.com${targetPath}`);
   }
 
-  if (request.headers.get('Sec-Fetch-Site') === 'cross-site') {
+  const secFetchSite = request.headers.get('Sec-Fetch-Site');
+  const secFetchMode = request.headers.get('Sec-Fetch-Mode');
+  const isApiRoute = pathname === '/api/connection-info' || pathname.startsWith('/api/');
+
+  if (secFetchSite === 'cross-site' && (isApiRoute || secFetchMode !== 'navigate')) {
     return jsonResponse({ error: 'Forbidden' }, 403);
   }
 

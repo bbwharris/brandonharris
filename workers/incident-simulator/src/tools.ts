@@ -1,21 +1,20 @@
 import type { CommandResult, Metrics, Region, IncidentState } from './types';
-import { REGIONS, TOTAL_SERVERS, getLogMessages, CVE_DETAILS, HINTS, PATCH_VERSIONS } from './scenario';
+import { REGIONS, getLogMessages, HINTS, PATCH_VERSIONS } from './scenario';
+import { isRegionCorrectlyPatched } from './simulation';
 
 export class IncidentTools {
   private state: IncidentState;
-  
+
   constructor(state: IncidentState) {
     this.state = state;
   }
-  
+
   getStatus(): CommandResult {
     const workflows = this.state.regionWorkflows;
-    const patchedCount = Object.values(workflows).filter(
-      w => w.state === 'patched' || w.state === 'security_review' || w.state === 'verified'
-    ).length;
+    const patchedCount = Object.values(workflows).filter(isRegionCorrectlyPatched).length;
 
     const inProgressCount = Object.values(workflows).filter(
-      w => w.state === 'patching' || w.state === 'rolling_back'
+      (w) => w.state === 'patching' || w.state === 'rolling_back',
     ).length;
 
     let output = `\nINCIDENT STATUS - ${this.state.cveId}\n`;
@@ -30,7 +29,7 @@ export class IncidentTools {
 
     output += `REGION WORKFLOWS:\n`;
     output += `${'-'.repeat(50)}\n`;
-    REGIONS.forEach(region => {
+    REGIONS.forEach((region) => {
       const workflow = workflows[region.name];
       const stateIcon = this.getWorkflowStateIcon(workflow.state);
       const progress = workflow.state === 'patching' || workflow.state === 'rolling_back'
@@ -53,7 +52,7 @@ export class IncidentTools {
       metrics: this.getCurrentMetrics(),
     };
   }
-  
+
   getMetrics(service: string): CommandResult {
     let output = `\n📊 METRICS: ${service.toUpperCase()}\n`;
     output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
@@ -67,7 +66,7 @@ export class IncidentTools {
     }
 
     output += `Regional Breakdown:\n`;
-    REGIONS.forEach(region => {
+    REGIONS.forEach((region) => {
       const workflow = this.state.regionWorkflows[region.name];
       const stateIcon = this.getWorkflowStateIcon(workflow.state);
       const healthIcon = this.getRegionHealthIcon(region.name);
@@ -84,17 +83,17 @@ export class IncidentTools {
       regions: this.getRegionList(),
     };
   }
-  
+
   getLogs(service: string, timeframe: string): CommandResult {
     const logs = getLogMessages(service, 'all', timeframe);
-    
-    let output = `\n📋 LOGS: ${service.toUpperCase()} (last ${timeframe})\n`;
+
+    let output = `\n📋 LOGS: ${service.toUpperCase()} (last ${timeframe}m)\n`;
     output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    
+
     if (logs.length === 0) {
       output += `No logs found for ${service} in the specified timeframe.\n`;
     } else {
-      logs.forEach(log => {
+      logs.forEach((log) => {
         const icon = log.level === 'ERROR' || log.level === 'FATAL' ? '🔴' :
                      log.level === 'WARN' ? '🟡' : '🔵';
         output += `${icon} [${log.level}] ${log.timestamp}\n`;
@@ -102,19 +101,19 @@ export class IncidentTools {
         output += `   ${log.message}\n\n`;
       });
     }
-    
+
     return {
       success: true,
       output,
       logs,
     };
   }
-  
+
   getRegionStatus(): CommandResult {
     let output = `\n🌍 REGIONAL STATUS\n`;
     output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
-    REGIONS.forEach(region => {
+    REGIONS.forEach((region) => {
       const workflow = this.state.regionWorkflows[region.name];
       const stateIcon = this.getWorkflowStateIcon(workflow.state);
       const statusText = workflow.state.toUpperCase().replace(/_/g, ' ');
@@ -134,7 +133,7 @@ export class IncidentTools {
       output += `  Error Rate:  ${workflow.errorRate.toFixed(2)}%\n`;
 
       if (workflow.securityItems.length > 0) {
-        const verifiedCount = workflow.securityItems.filter(i => i.verified).length;
+        const verifiedCount = workflow.securityItems.filter((i) => i.verified).length;
         output += `  Security:    ${verifiedCount}/${workflow.securityItems.length} verified\n`;
       }
 
@@ -152,7 +151,7 @@ export class IncidentTools {
     let output = `\n📦 AVAILABLE PATCH VERSIONS\n`;
     output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
-    PATCH_VERSIONS.forEach(patch => {
+    PATCH_VERSIONS.forEach((patch) => {
       output += `Version: ${patch.version}\n`;
       output += `  Description: ${patch.description}\n`;
       output += `  Kernel Range: ${patch.kernelRange}\n\n`;
@@ -166,25 +165,24 @@ export class IncidentTools {
       output,
     };
   }
-  
 
-  getHint(): CommandResult {
+  getHint(): { result: CommandResult; nextHintsUsed: number } {
     const phase = this.state.phase;
     const hints = HINTS[phase as keyof typeof HINTS] || HINTS.general;
     const hintIndex = this.state.hintsUsed % hints.length;
-    
-    this.state.hintsUsed++;
-    
+    const nextHintsUsed = this.state.hintsUsed + 1;
+
     return {
-      success: true,
-      output: `💡 HINT #${this.state.hintsUsed}:\n\n${hints[hintIndex]}`,
+      nextHintsUsed,
+      result: {
+        success: true,
+        output: `💡 HINT #${nextHintsUsed}:\n\n${hints[hintIndex]}`,
+      },
     };
   }
-  
+
   private getCurrentMetrics(): Metrics {
-    const patchedCount = Object.values(this.state.regionWorkflows).filter(
-      w => w.state === 'patched' || w.state === 'security_review' || w.state === 'verified'
-    ).length;
+    const patchedCount = Object.values(this.state.regionWorkflows).filter(isRegionCorrectlyPatched).length;
 
     return {
       errorRate: this.state.errorRate,
@@ -196,26 +194,25 @@ export class IncidentTools {
   }
 
   private getRegionList(): Region[] {
-    return REGIONS.map(r => {
+    return REGIONS.map((r) => {
       const workflow = this.state.regionWorkflows[r.name];
       return {
         ...r,
-        status: this.getRegionHealth(r.name) as any,
-        patchStatus: workflow.state === 'patched' || workflow.state === 'security_review' || workflow.state === 'verified' ? 'complete' :
+        status: this.getRegionHealth(r.name),
+        patchStatus: isRegionCorrectlyPatched(workflow) ? 'complete' :
                      workflow.state === 'patching' ? 'in_progress' :
-                     workflow.state === 'patch_failed' ? 'failed' : 'pending',
+                     workflow.state === 'patch_failed' || (workflow.state === 'patched' && workflow.patchVersion !== workflow.requiredPatch) ? 'failed' : 'pending',
       };
     });
   }
 
-  private getRegionHealth(region: string): string {
-    // Simulate health based on workflow state and error rate
+  private getRegionHealth(region: string): Region['status'] {
     const workflow = this.state.regionWorkflows[region];
     if (workflow.state === 'patch_failed') return 'critical';
     if (workflow.errorRate > 2) return 'degraded';
     return 'healthy';
   }
-  
+
   private getRegionHealthIcon(region: string): string {
     const health = this.getRegionHealth(region);
     if (health === 'critical') return '🔴';
@@ -237,28 +234,24 @@ export class IncidentTools {
       default: return '⚪';
     }
   }
-  
+
   private getErrorTrend(): string {
     if (this.state.errorRate > 1.0) return '↗️  ELEVATED';
     if (this.state.errorRate > 0.5) return '→  MODERATE';
     return '↘️  NORMAL';
   }
-  
+
   private getLatencyTrend(): string {
     if (this.state.latencyP99 > 100) return '↗️  HIGH';
     if (this.state.latencyP99 > 60) return '→  MODERATE';
     return '↘️  NORMAL';
   }
-  
+
   private getHealthScore(): number {
-    const patched = Object.values(this.state.regionWorkflows).filter(
-      w => w.state === 'patched' || w.state === 'security_review' || w.state === 'verified'
-    ).length;
+    const patched = Object.values(this.state.regionWorkflows).filter(isRegionCorrectlyPatched).length;
     const baseScore = 70;
     const patchBonus = (patched / REGIONS.length) * 30;
     const errorPenalty = this.state.errorRate * 5;
     return Math.max(0, Math.min(100, Math.round(baseScore + patchBonus - errorPenalty)));
   }
 }
-
-

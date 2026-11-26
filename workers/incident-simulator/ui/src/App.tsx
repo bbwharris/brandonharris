@@ -25,6 +25,14 @@ interface RegionWorkflow {
   failureCount: number;
 }
 
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  persona?: 'sre' | 'security';
+}
+
 interface IncidentState {
   phase: string;
   simTime: string;
@@ -35,8 +43,8 @@ interface IncidentState {
   latencyP99: number;
   trafficVolume: number;
   patchStatus: Record<string, string>;
-  actions: any[];
-  messages: any[];
+  actions: unknown[];
+  messages: ChatMessage[];
   resolved: boolean;
   cveId: string;
   aiPersona: string | null;
@@ -60,21 +68,46 @@ function getSessionId(): string {
   }
 }
 
-const WS_URL = import.meta.env.DEV
-  ? 'ws://localhost:8787/agents/incident-agent/session'
-  : `wss://agents.brandon-harris.com/agents/incident-agent/${getSessionId()}/session`;
+function getWebSocketUrl(): string {
+  if (import.meta.env.DEV) {
+    return 'ws://localhost:8787/agents/incident-agent/session';
+  }
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}/agents/incident-agent/${getSessionId()}/session`;
+}
+
+const WS_URL = getWebSocketUrl();
+
+function mergeMessages(existing: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
+  if (incoming.length === 0) return existing;
+
+  const seen = new Set(existing.map((m) => m.id));
+  const additions = incoming.filter((m) => !seen.has(m.id));
+  return additions.length > 0 ? [...existing, ...additions] : existing;
+}
 
 const App: React.FC = () => {
   const [connected, setConnected] = useState(false);
   const [state, setState] = useState<IncidentState | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typingState, setTypingState] = useState<{ isTyping: boolean; persona: string | null }>({ isTyping: false, persona: null });
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const terminalInputRef = useRef<HTMLInputElement>(null);
+  const chatInputRef = useRef<HTMLInputElement>(null);
 
   const addToTerminal = useCallback((text: string) => {
-    setTerminalOutput(prev => [...prev, text]);
+    setTerminalOutput((prev) => [...prev, text]);
+  }, []);
+
+  const focusChat = useCallback(() => {
+    chatInputRef.current?.focus();
+  }, []);
+
+  const focusTerminal = useCallback(() => {
+    terminalInputRef.current?.focus();
   }, []);
 
   const connectWebSocket = useCallback(() => {
@@ -90,7 +123,6 @@ const App: React.FC = () => {
 
     ws.onmessage = async (event) => {
       try {
-        // Handle both string and binary (Blob/ArrayBuffer) data
         let text: string;
         if (typeof event.data === 'string') {
           text = event.data;
@@ -102,9 +134,9 @@ const App: React.FC = () => {
           console.error('Unknown message format:', typeof event.data, event.data);
           return;
         }
-        
+
         const data = JSON.parse(text);
-        
+
         switch (data.type) {
           case 'system':
             addToTerminal(data.content);
@@ -112,15 +144,25 @@ const App: React.FC = () => {
           case 'state_update':
           case 'cf_agent_state':
             setState(data.state);
+            if (Array.isArray(data.state?.messages)) {
+              setMessages(data.state.messages);
+            }
             break;
           case 'notification':
             addToTerminal(`\n[${data.severity.toUpperCase()}] ${data.message}\n`);
             break;
           case 'messages':
-            setMessages(prev => [...prev, ...data.messages]);
+            if (Array.isArray(data.messages)) {
+              setMessages((prev) => mergeMessages(prev, data.messages));
+            }
             break;
           case 'typing':
             setTypingState({ isTyping: data.isTyping, persona: data.persona });
+            break;
+          case 'error':
+            if (data.error) {
+              addToTerminal(`❌ ${data.error}`);
+            }
             break;
           case 'response':
             if (data.result && data.result.output) {
@@ -129,7 +171,6 @@ const App: React.FC = () => {
               addToTerminal(`❌ ${data.result.error}`);
             }
             break;
-          // Ignore internal SDK messages
           case 'cf_agent_identity':
           case 'cf_agent_mcp_servers':
           case 'connect':
@@ -146,8 +187,7 @@ const App: React.FC = () => {
     ws.onclose = () => {
       setConnected(false);
       addToTerminal('🔌 Disconnected from incident response system');
-      
-      // Attempt to reconnect after 3 seconds
+
       if (!reconnectTimeoutRef.current) {
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectTimeoutRef.current = null;
@@ -164,12 +204,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const connect = () => {
       if (!isMounted) return;
       connectWebSocket();
     };
-    
+
     connect();
 
     return () => {
@@ -179,7 +219,7 @@ const App: React.FC = () => {
         reconnectTimeoutRef.current = null;
       }
       if (wsRef.current) {
-        wsRef.current.onclose = null; // Prevent reconnection attempt
+        wsRef.current.onclose = null;
         wsRef.current.close();
         wsRef.current = null;
       }
@@ -223,7 +263,7 @@ const App: React.FC = () => {
       method: 'reset',
       args: [],
     }));
-    
+
     setTerminalOutput([]);
     setMessages([]);
   }, [addToTerminal]);
@@ -253,19 +293,23 @@ const App: React.FC = () => {
         </aside>
 
         <main className="main-content">
-          <Terminal 
+          <Terminal
             output={terminalOutput}
             onCommand={executeCommand}
             connected={connected}
+            inputRef={terminalInputRef}
+            onSwitchFocus={focusChat}
           />
         </main>
 
         <aside className="sidebar right">
-          <Chat 
+          <Chat
             messages={messages}
             onSendMessage={sendMessage}
             connected={connected}
             typingState={typingState}
+            inputRef={chatInputRef}
+            onSwitchFocus={focusTerminal}
           />
         </aside>
       </div>

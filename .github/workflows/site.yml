@@ -6,6 +6,7 @@ on:
       - "content/**"
       - "layouts/**"
       - "static/**"
+      - "themes/**"
       - "config.toml"
       - ".hugoversion"
       - ".github/workflows/site.yml"
@@ -14,6 +15,7 @@ on:
       - "content/**"
       - "layouts/**"
       - "static/**"
+      - "themes/**"
       - "config.toml"
       - ".hugoversion"
       - ".github/workflows/site.yml"
@@ -27,9 +29,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Read Hugo version
+        id: hugo-version
+        run: echo "version=$(tr -d '[:space:]' < .hugoversion)" >> "$GITHUB_OUTPUT"
+
       - uses: peaceiris/actions-hugo@v3
         with:
-          hugo-version: "0.169.0"
+          hugo-version: ${{ steps.hugo-version.outputs.version }}
           extended: true
 
       - name: Build
